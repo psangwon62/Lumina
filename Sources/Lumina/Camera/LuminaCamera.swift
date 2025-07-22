@@ -46,13 +46,21 @@ enum CameraSetupResult: String {
 
 public enum TorchState {
   //swiftlint:disable identifier_name
-  case on(intensity: Float)
+  case on
   case off
   case auto
 }
 
+public enum FlashState {
+  case on
+  case off
+  case auto
+}
 final class LuminaCamera: NSObject {
   weak var delegate: LuminaCameraDelegate?
+
+  var flashState: FlashState = .off
+  var isVideoStabilizationEnabled = false
 
   var torchState: TorchState = .off {
     didSet {
@@ -63,10 +71,10 @@ final class LuminaCamera: NSObject {
       do {
         try input.device.lockForConfiguration()
         switch torchState {
-          case .on(let intensity):
+          case .on:
             if input.device.isTorchModeSupported(.on) {
-              try input.device.setTorchModeOn(level: intensity)
-              LuminaLogger.notice(message: "torch mode set to on with intensity: \(intensity)")
+              try input.device.setTorchModeOn(level: 1.0)
+              LuminaLogger.notice(message: "torch mode set to on")
               input.device.unlockForConfiguration()
             }
           case .off:
@@ -154,11 +162,7 @@ final class LuminaCamera: NSObject {
 
   var maxZoomScale: Float = MAXFLOAT
 
-  var currentZoomScale: Float = 1.0 {
-    didSet {
-      updateZoom()
-    }
-  }
+  var currentZoomScale: Float = 1.0
 
   var currentPhotoCollection: LuminaPhotoCapture?
 

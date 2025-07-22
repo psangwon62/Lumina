@@ -103,14 +103,14 @@ open class LuminaViewController: UIViewController {
     return button
   }
 
-  private var _torchButton: LuminaButton?
-  var torchButton: LuminaButton {
-    if let currentButton = _torchButton {
+  private var _flashButton: LuminaButton?
+  var flashButton: LuminaButton {
+    if let currentButton = _flashButton {
       return currentButton
     }
-    let button = LuminaButton(with: SystemButtonType.torch)
-    button.addTarget(self, action: #selector(torchButtonTapped), for: .touchUpInside)
-    _torchButton = button
+    let button = LuminaButton(with: SystemButtonType.flash)
+    button.addTarget(self, action: #selector(flashButtonTapped), for: .touchUpInside)
+    _flashButton = button
     return button
   }
 
@@ -226,12 +226,37 @@ open class LuminaViewController: UIViewController {
     switchButton.isHidden = !visible
   }
 
-  public func setTorchButton(visible: Bool) {
-    torchButton.isHidden = !visible
+  public func setFlashButton(visible: Bool) {
+    flashButton.isHidden = !visible
+  }
+
+  public func captureStillImage() {
+    guard let camera = self.camera else {
+        return
+    }
+    camera.captureStillImage()
   }
 
   public func pauseCamera() {
     self.camera?.stop()
+  }
+
+  public func setZoom(factor: Float, animated: Bool = true) {
+    let hardwareFactor = factor * wideAngleZoomFactor
+    guard let device = self.camera?.videoInput?.device else { return }
+    do {
+        try device.lockForConfiguration()
+        if animated {
+            // A rate of 1.0 is slow, 30.0 is very fast.
+            device.ramp(toVideoZoomFactor: CGFloat(hardwareFactor), withRate: 10.0)
+        } else {
+            device.videoZoomFactor = CGFloat(hardwareFactor)
+        }
+        device.unlockForConfiguration()
+    } catch {
+        LuminaLogger.error(message: "Could not lock device for configuration: \(error)")
+        device.unlockForConfiguration()
+    }
   }
 
   public func startCamera() {
@@ -290,6 +315,16 @@ open class LuminaViewController: UIViewController {
     }
   }
 
+  /// Set this to enable video stabilization.
+  ///
+  /// - Note: This enables OIS (Optical Image Stabilization) if the device supports it.
+  open var isVideoStabilizationEnabled: Bool = false {
+    didSet {
+      LuminaLogger.notice(message: "Setting video stabilization to \(isVideoStabilizationEnabled)")
+      self.camera?.isVideoStabilizationEnabled = isVideoStabilizationEnabled
+    }
+  }
+
   /// Set this to apply a level of logging to Lumina, to track activity within the framework
   public static var loggingLevel: Logger.Level = .critical {
     didSet {
@@ -297,11 +332,12 @@ open class LuminaViewController: UIViewController {
     }
   }
 
-  public var currentZoomScale: Float = 1.0 {
-    didSet {
-      self.camera?.currentZoomScale = currentZoomScale
-    }
-  }
+  /// The current zoom scale of the camera
+  public var currentZoomScale: Float = 1.0
+  
+  var wideAngleZoomFactor: Float = 1.0
+  public var onZoomDidChange: ((Float) -> Void)?
+  var zoomObservation: NSKeyValueObservation?
 
   var beginZoomScale: Float = 1.0
 
@@ -314,6 +350,10 @@ open class LuminaViewController: UIViewController {
     if let version = LuminaViewController.getVersion() {
       LuminaLogger.info(message: "Loading Lumina v\(version)")
     }
+  }
+  
+  deinit {
+      zoomObservation?.invalidate()
   }
 
   /// run this in order to create Lumina with a storyboard

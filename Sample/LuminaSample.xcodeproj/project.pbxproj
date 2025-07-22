@@ -3,10 +3,16 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 52;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1B2F5B792E2FECAB004AD759 /* LuminaCameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B2F5B752E2FECAB004AD759 /* LuminaCameraView.swift */; };
+		1B2F5B7A2E2FECAB004AD759 /* LuminaSampleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B2F5B762E2FECAB004AD759 /* LuminaSampleApp.swift */; };
+		1B2F5B7B2E2FECAB004AD759 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B2F5B742E2FECAB004AD759 /* ContentView.swift */; };
+		1B2F5B7C2E2FECAB004AD759 /* LuminaSwiftUIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B2F5B772E2FECAB004AD759 /* LuminaSwiftUIView.swift */; };
+		1B2F5B7D2E2FECAB004AD759 /* PreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B2F5B782E2FECAB004AD759 /* PreviewView.swift */; };
+		1B2F5B7F2E2FF115004AD759 /* PhotoStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B2F5B7E2E2FF115004AD759 /* PhotoStore.swift */; };
 		5025C7B826A33BFA009B1F85 /* Lumina in Frameworks */ = {isa = PBXBuildFile; productRef = 5025C7B726A33BFA009B1F85 /* Lumina */; };
 		534C1E9E1F7C3C59001127BC /* ResolutionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 534C1E9D1F7C3C59001127BC /* ResolutionViewController.swift */; };
 		5365BFD41F79829800B8F338 /* ImageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5365BFD31F79829800B8F338 /* ImageViewController.swift */; };
@@ -34,6 +40,12 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1B2F5B742E2FECAB004AD759 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		1B2F5B752E2FECAB004AD759 /* LuminaCameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LuminaCameraView.swift; sourceTree = "<group>"; };
+		1B2F5B762E2FECAB004AD759 /* LuminaSampleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LuminaSampleApp.swift; sourceTree = "<group>"; };
+		1B2F5B772E2FECAB004AD759 /* LuminaSwiftUIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LuminaSwiftUIView.swift; sourceTree = "<group>"; };
+		1B2F5B782E2FECAB004AD759 /* PreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewView.swift; sourceTree = "<group>"; };
+		1B2F5B7E2E2FF115004AD759 /* PhotoStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoStore.swift; sourceTree = "<group>"; };
 		5025C7BA26A36C36009B1F85 /* Lumina */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Lumina; path = ..; sourceTree = "<group>"; };
 		534C1E9D1F7C3C59001127BC /* ResolutionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResolutionViewController.swift; sourceTree = "<group>"; };
 		5365BFD31F79829800B8F338 /* ImageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageViewController.swift; sourceTree = "<group>"; };
@@ -90,6 +102,12 @@
 		53B828F51EAAA09000E3A624 /* LuminaSample */ = {
 			isa = PBXGroup;
 			children = (
+				1B2F5B7E2E2FF115004AD759 /* PhotoStore.swift */,
+				1B2F5B742E2FECAB004AD759 /* ContentView.swift */,
+				1B2F5B752E2FECAB004AD759 /* LuminaCameraView.swift */,
+				1B2F5B762E2FECAB004AD759 /* LuminaSampleApp.swift */,
+				1B2F5B772E2FECAB004AD759 /* LuminaSwiftUIView.swift */,
+				1B2F5B782E2FECAB004AD759 /* PreviewView.swift */,
 				53B828F61EAAA09000E3A624 /* AppDelegate.swift */,
 				53B828F81EAAA09000E3A624 /* ViewController.swift */,
 				5365BFD31F79829800B8F338 /* ImageViewController.swift */,
@@ -149,7 +167,6 @@
 				TargetAttributes = {
 					53B828F21EAAA09000E3A624 = {
 						CreatedOnToolsVersion = 8.2.1;
-						DevelopmentTeam = RQ632LL2X3;
 						LastSwiftMigration = 1020;
 						ProvisioningStyle = Automatic;
 					};
@@ -217,6 +234,12 @@
 				5373B3F11FC61BBF00C197BD /* SqueezeNet.mlmodel in Sources */,
 				5365BFDA1F79AAA800B8F338 /* MobileNet.mlmodel in Sources */,
 				53B828F91EAAA09000E3A624 /* ViewController.swift in Sources */,
+				1B2F5B792E2FECAB004AD759 /* LuminaCameraView.swift in Sources */,
+				1B2F5B7A2E2FECAB004AD759 /* LuminaSampleApp.swift in Sources */,
+				1B2F5B7B2E2FECAB004AD759 /* ContentView.swift in Sources */,
+				1B2F5B7F2E2FF115004AD759 /* PhotoStore.swift in Sources */,
+				1B2F5B7C2E2FECAB004AD759 /* LuminaSwiftUIView.swift in Sources */,
+				1B2F5B7D2E2FECAB004AD759 /* PreviewView.swift in Sources */,
 				5365BFD41F79829800B8F338 /* ImageViewController.swift in Sources */,
 				53B828F71EAAA09000E3A624 /* AppDelegate.swift in Sources */,
 			);
@@ -362,9 +385,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = RQ632LL2X3;
+				DEVELOPMENT_TEAM = B3PWYBKFUK;
 				INFOPLIST_FILE = LuminaSample/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -380,9 +403,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = RQ632LL2X3;
+				DEVELOPMENT_TEAM = B3PWYBKFUK;
 				INFOPLIST_FILE = LuminaSample/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

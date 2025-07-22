@@ -262,7 +262,7 @@ To adapt the user interface to your needs, you can set the visibility of the but
 camera.setCancelButton(visible: Bool)
 camera.setShutterButton(visible: Bool)
 camera.setSwitchButton(visible: Bool)
-camera.setTorchButton(visible: Bool)
+camera.setFlashButton(visible: Bool)
 ```
 
 Per default, all of the buttons are visible.
@@ -271,16 +271,17 @@ Per default, all of the buttons are visible.
 
 For some UI designs, apps may want to embed `LuminaViewController` within a custom View Controler, adding controls adjacent to the camera view rather than putting all the controls inside the camera view. 
 
-Here is a code snippet that demonstrates adding a torch buttons and controlling the camera zoom level via the externally accessible API:
+Here is a code snippet that demonstrates adding a flash buttons and controlling the camera zoom level via the externally accessible API:
 ```swift
 class MyCustomViewController: UIViewController {
     @IBOutlet weak var flashButton: UIButton!
     @IBOutlet weak var zoomButton: UIButton!
     var luminaVC: LuminaViewController? //set in prepare(for segue:) via the embed segue in the storyboard
-    var flashState = false
+    var flashState: FlashState = .off
     var zoomLevel:Float = 2.0
-    let flashOnImage = UIImage(named: "Flash_On") #assumes an image with this name is in your Assets Library
-    let flashOffImage = UIImage(named: "Flash_Off") #assumes an image with this name is in your Assets Library
+    let flashOnImage = UIImage(named: "Flash_On") //assumes an image with this name is in your Assets Library
+    let flashOffImage = UIImage(named: "Flash_Off") //assumes an image with this name is in your Assets Library
+    let flashAutoImage = UIImage(named: "Flash_Auto") //assumes an image with this name is in your Assets Library
 
     override public func viewDidLoad() {
         super.viewDidLoad()
@@ -288,25 +289,33 @@ class MyCustomViewController: UIViewController {
         luminaVC?.delegate = self
         luminaVC?.trackMetadata = true
         luminaVC?.position = .back
-        luminaVC?.setTorchButton(visible: false)
+        luminaVC?.setFlashButton(visible: false)
         luminaVC?.setCancelButton(visible: false)
         luminaVC?.setSwitchButton(visible: false)
         luminaVC?.setShutterButton(visible: false)
-        luminaVC?.camera?.torchState = flashState ? .on(intensity: 1.0) : .off
+        luminaVC?.camera?.flashState = flashState
         luminaVC?.currentZoomScale = zoomLevel
     }
 
     override public func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-    if segue.identifier == "Lumina" { #name this segue in storyboard
+    if segue.identifier == "Lumina" { //name this segue in storyboard
             self.luminaVC = segue.destination as? LuminaViewController
         }
     }
 
     @IBAction func flashTapped(_ sender: Any) {
-        flashState = !flashState
-        luminaVC?.camera?.torchState = flashState ? .on(intensity: 1.0) : .off
-        let image = flashState ? flashOnImage : flashOffImage
-        flashButton.setImage(image, for: .normal)
+        switch flashState {
+            case .off:
+                flashState = .on
+                flashButton.setImage(flashOnImage, for: .normal)
+            case .on:
+                flashState = .auto
+                flashButton.setImage(flashAutoImage, for: .normal)
+            case .auto:
+                flashState = .off
+                flashButton.setImage(flashOffImage, for: .normal)
+        }
+        luminaVC?.camera?.flashState = flashState
     }
 
     @IBAction func zoomTapped(_ sender: Any) {
@@ -319,6 +328,7 @@ class MyCustomViewController: UIViewController {
         }
         luminaVC?.currentZoomScale = zoomLevel
     }
+```
 
 ```
 
