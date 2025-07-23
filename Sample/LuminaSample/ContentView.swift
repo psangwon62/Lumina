@@ -5,10 +5,10 @@
 //  Created by [Your Name] on 2025/07/23.
 //
 
-import SwiftUI
-import Lumina
 import CoreML
 import Logging
+import Lumina
+import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var photoStore: PhotoStore
@@ -29,11 +29,12 @@ struct ContentView: View {
     @State private var isVideoStabilizationEnabled = false
     @State private var loggingLevel: Logger.Level = .critical
     @State private var maxZoomScale: Float = 15.0
-    
+
     // Camera UI State
     @State private var zoomFactor: Float = 1.0
     @State private var commandedZoomFactor: Float? = nil
     @State private var captureTrigger = false
+    @State private var flashState: FlashState = .off
 
     var body: some View {
         NavigationView {
@@ -43,30 +44,30 @@ struct ContentView: View {
                         get: { self.position == .front },
                         set: { self.position = $0 ? .front : .back }
                     ))
-                    Toggle("Record Video", isOn: $recordsVideo)
-                    Toggle("Stream Frames", isOn: $streamFrames)
-                    Toggle("Track Metadata", isOn: $trackMetadata)
-                    Toggle("Capture Live Photos", isOn: $captureLivePhotos)
-                    Toggle("Capture Depth Data", isOn: $captureDepthData)
-                    Toggle("Stream Depth Data", isOn: $streamDepthData)
-                    Toggle("Use CoreML Models", isOn: $useCoreMLModels)
-                    Toggle("Enable Video Stabilization (OIS)", isOn: $isVideoStabilizationEnabled)
+                    Toggle("Record Video", isOn: self.$recordsVideo)
+                    Toggle("Stream Frames", isOn: self.$streamFrames)
+                    Toggle("Track Metadata", isOn: self.$trackMetadata)
+                    Toggle("Capture Live Photos", isOn: self.$captureLivePhotos)
+                    Toggle("Capture Depth Data", isOn: self.$captureDepthData)
+                    Toggle("Stream Depth Data", isOn: self.$streamDepthData)
+                    Toggle("Use CoreML Models", isOn: self.$useCoreMLModels)
+                    Toggle("Enable Video Stabilization (OIS)", isOn: self.$isVideoStabilizationEnabled)
                 }
 
                 Section(header: Text("Camera Configuration")) {
-                    Picker("Resolution", selection: $resolution) {
+                    Picker("Resolution", selection: self.$resolution) {
                         ForEach(CameraResolution.allCases, id: \.self) { res in
                             Text(res.rawValue).tag(res)
                         }
                     }
-                    Stepper("Frame Rate: \(frameRate)", value: $frameRate, in: 1...60)
+                    Stepper("Frame Rate: \(self.frameRate)", value: self.$frameRate, in: 1...60)
                     HStack {
                         Text("Max Zoom")
-                        Slider(value: $maxZoomScale, in: 1...15, step: 0.5)
-                        Text(String(format: "%.1fx", maxZoomScale))
+                        Slider(value: self.$maxZoomScale, in: 1...15, step: 0.5)
+                        Text(String(format: "%.1fx", self.maxZoomScale))
                     }
                 }
-                
+
                 Section {
                     Button("Open Camera") {
                         self.showCamera = true
@@ -74,25 +75,26 @@ struct ContentView: View {
                 }
             }
             .navigationTitle("Lumina SwiftUI")
-            .fullScreenCover(isPresented: $showCamera) {
+            .fullScreenCover(isPresented: self.$showCamera) {
                 CameraView(
-                    zoomFactor: $zoomFactor,
-                    commandedZoomFactor: $commandedZoomFactor,
-                    captureTrigger: $captureTrigger,
-                    position: $position,
-                    recordsVideo: $recordsVideo,
-                    streamFrames: $streamFrames,
-                    trackMetadata: $trackMetadata,
-                    captureLivePhotos: $captureLivePhotos,
-                    captureDepthData: $captureDepthData,
-                    streamDepthData: $streamDepthData,
-                    resolution: $resolution,
-                    frameRate: $frameRate,
-                    useCoreMLModels: $useCoreMLModels,
-                    isVideoStabilizationEnabled: $isVideoStabilizationEnabled,
-                    maxZoomScale: $maxZoomScale
+                    zoomFactor: self.$zoomFactor,
+                    commandedZoomFactor: self.$commandedZoomFactor,
+                    captureTrigger: self.$captureTrigger,
+                    flashState: self.$flashState,
+                    position: self.$position,
+                    recordsVideo: self.$recordsVideo,
+                    streamFrames: self.$streamFrames,
+                    trackMetadata: self.$trackMetadata,
+                    captureLivePhotos: self.$captureLivePhotos,
+                    captureDepthData: self.$captureDepthData,
+                    streamDepthData: self.$streamDepthData,
+                    resolution: self.$resolution,
+                    frameRate: self.$frameRate,
+                    useCoreMLModels: self.$useCoreMLModels,
+                    isVideoStabilizationEnabled: self.$isVideoStabilizationEnabled,
+                    maxZoomScale: self.$maxZoomScale
                 )
-                .environmentObject(photoStore)
+                .environmentObject(self.photoStore)
                 .onAppear {
                     self.zoomFactor = 1.0
                 }
@@ -104,11 +106,12 @@ struct ContentView: View {
 struct CameraView: View {
     @EnvironmentObject var photoStore: PhotoStore
     @Environment(\.presentationMode) var presentationMode
-    
+
     @Binding var zoomFactor: Float
     @Binding var commandedZoomFactor: Float?
     @Binding var captureTrigger: Bool
-    
+    @Binding var flashState: FlashState
+
     // Pass-through bindings for settings
     @Binding var position: CameraPosition
     @Binding var recordsVideo: Bool
@@ -127,60 +130,67 @@ struct CameraView: View {
         ZStack {
             LuminaCameraView(
                 isPresented: .constant(true),
-                position: $position,
-                recordsVideo: $recordsVideo,
-                streamFrames: $streamFrames,
-                trackMetadata: $trackMetadata,
-                captureLivePhotos: $captureLivePhotos,
-                captureDepthData: $captureDepthData,
-                streamDepthData: $streamDepthData,
-                resolution: $resolution,
-                frameRate: $frameRate,
-                useCoreMLModels: $useCoreMLModels,
-                isVideoStabilizationEnabled: $isVideoStabilizationEnabled,
-                maxZoomScale: $maxZoomScale,
+                position: self.$position,
+                flashState: self.$flashState,
+                recordsVideo: self.$recordsVideo,
+                streamFrames: self.$streamFrames,
+                trackMetadata: self.$trackMetadata,
+                captureLivePhotos: self.$captureLivePhotos,
+                captureDepthData: self.$captureDepthData,
+                streamDepthData: self.$streamDepthData,
+                resolution: self.$resolution,
+                frameRate: self.$frameRate,
+                useCoreMLModels: self.$useCoreMLModels,
+                isVideoStabilizationEnabled: self.$isVideoStabilizationEnabled,
+                maxZoomScale: self.$maxZoomScale,
                 onZoomFactorChanged: { newFactor in
                     self.zoomFactor = newFactor
                 },
-                commandedZoomFactor: $commandedZoomFactor,
-                captureTrigger: $captureTrigger
+                commandedZoomFactor: self.$commandedZoomFactor,
+                captureTrigger: self.$captureTrigger
             )
             .ignoresSafeArea()
 
             // Custom UI Overlay
             VStack {
                 HStack {
-                    Button(action: { presentationMode.wrappedValue.dismiss() }) {
+                    Button(action: { self.presentationMode.wrappedValue.dismiss() }) {
                         Image(systemName: "xmark")
-                            .font(.title)
+                            .font(.title2)
                             .foregroundColor(.white)
-                            .padding()
                     }
+
                     Spacer()
-                    Text(String(format: "%.1fx", zoomFactor))
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(8)
-                        .background(Color.black.opacity(0.5))
-                        .cornerRadius(10)
-                        .onTapGesture {
-                            self.commandedZoomFactor = 1.0
+
+                    Button(action: {
+                        switch self.flashState {
+                        case .off: self.flashState = .on
+                        case .on: self.flashState = .auto
+                        case .auto: self.flashState = .off
                         }
-                    Spacer()
-                    Rectangle().fill(Color.clear).frame(width: 44, height: 44)
+                    }) {
+                        Image(systemName: self.flashState == .on ? "bolt.fill" : (self.flashState == .off ? "bolt.slash.fill" : "bolt.badge.a.fill"))
+                            .font(.title2)
+                            .foregroundColor(.white)
+                    }
                 }
-                .padding(.horizontal)
-                
+                .padding(.horizontal, 20)
+                .padding(.top, 15)
+
                 Spacer()
-                
-                HStack(alignment: .center) {
-                    Spacer()
-                    Button(action: { self.captureTrigger = true }) {
-                        ZStack {
-                            Circle().strokeBorder(Color.white, lineWidth: 4).frame(width: 70, height: 70)
-                            Circle().fill(Color.white).frame(width: 60, height: 60)
-                        }
+
+                Text(String(format: "%.1fx", self.zoomFactor))
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(.white)
+                    .padding(8)
+                    .background(Color.black.opacity(0.5))
+                    .cornerRadius(10)
+                    .onTapGesture {
+                        self.commandedZoomFactor = 1.0
                     }
+
+                HStack(alignment: .center) {
+                    // Thumbnail
                     ZStack {
                         RoundedRectangle(cornerRadius: 8).stroke(Color.white, lineWidth: 2)
                         if let latestImage = photoStore.latestPhoto {
@@ -190,10 +200,33 @@ struct CameraView: View {
                         }
                     }
                     .frame(width: 60, height: 60)
-                    .padding(.leading, 20)
+
+                    Spacer()
+
+                    // Shutter Button
+                    Button(action: { self.captureTrigger = true }) {
+                        ZStack {
+                            Circle().strokeBorder(Color.white, lineWidth: 4).frame(width: 70, height: 70)
+                            Circle().fill(Color.white).frame(width: 60, height: 60)
+                        }
+                    }
+
+                    Spacer()
+
+                    // Camera Switch Button
+                    Button(action: {
+                        self.position = (self.position == .back) ? .front : .back
+                        // Reset zoom to 1x when switching cameras
+                        self.commandedZoomFactor = 1.0
+                    }) {
+                        Image(systemName: "arrow.triangle.2.circlepath.camera.fill")
+                            .font(.largeTitle)
+                            .foregroundColor(.white)
+                    }
+                    .frame(width: 60, height: 60)
                 }
                 .padding(.bottom, 30)
-                .padding(.horizontal, 40)
+                .padding(.horizontal, 20)
             }
         }
     }

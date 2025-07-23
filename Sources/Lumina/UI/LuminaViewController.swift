@@ -23,6 +23,15 @@ open class LuminaViewController: UIViewController {
       camera?.torchState = newValue
     }
   }
+  
+  public var flashState: FlashState {
+      get {
+          return camera?.flashState ?? .off
+      }
+      set(newValue) {
+          camera?.flashState = newValue
+      }
+  }
 
   private var _previewLayer: AVCaptureVideoPreviewLayer?
   var previewLayer: AVCaptureVideoPreviewLayer {
@@ -354,6 +363,32 @@ open class LuminaViewController: UIViewController {
   
   deinit {
       zoomObservation?.invalidate()
+      NotificationCenter.default.removeObserver(self)
+  }
+
+  @objc func cameraDeviceDidChange(_ notification: Notification) {
+      guard let device = notification.object as? AVCaptureDevice else { return }
+      
+      // 1. Determine the hardware factor for the wide-angle lens (the "base" for our UI zoom)
+      if device.position == .back && device.isVirtualDevice {
+          if let factor = device.virtualDeviceSwitchOverVideoZoomFactors.first {
+              self.wideAngleZoomFactor = Float(factor.doubleValue)
+          } else {
+              self.wideAngleZoomFactor = 1.0
+          }
+      } else {
+          self.wideAngleZoomFactor = 1.0
+      }
+      
+      // 2. Reset all UI-facing zoom states to 1.0x
+      self.currentZoomScale = 1.0
+      self.beginZoomScale = 1.0
+      
+      // 3. Update the UI label to show 1.0x
+      self.onZoomDidChange?(1.0)
+      
+      // 4. Apply the reset 1.0x UI zoom to the hardware
+      self.setZoom(factor: 1.0, animated: false)
   }
 
   /// run this in order to create Lumina with a storyboard
@@ -378,6 +413,7 @@ open class LuminaViewController: UIViewController {
     super.viewWillAppear(animated)
     createUI()
     updateUI(orientation: LuminaViewController.orientation)
+    NotificationCenter.default.addObserver(self, selector: #selector(cameraDeviceDidChange), name: .luminaCameraDeviceChanged, object: nil)
     self.camera?.updateVideo { result in
       self.handleCameraSetupResult(result)
     }

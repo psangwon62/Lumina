@@ -10,6 +10,10 @@ import UIKit
 import AVFoundation
 import CoreML
 
+extension Notification.Name {
+    static let luminaCameraDeviceChanged = Notification.Name("LuminaCameraDeviceChanged")
+}
+
 protocol LuminaCameraDelegate: AnyObject {
   func stillImageCaptured(camera: LuminaCamera, image: UIImage, livePhotoURL: URL?, depthData: Any?)
   func videoFrameCaptured(camera: LuminaCamera, frame: UIImage)

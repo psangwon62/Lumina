@@ -148,6 +148,11 @@ extension LuminaCamera {
     configureFrameRate()
     
     self.session.commitConfiguration()
+    
+    DispatchQueue.main.async {
+        NotificationCenter.default.post(name: .luminaCameraDeviceChanged, object: self.videoInput?.device)
+    }
+    
     return .videoSuccess
   }
 

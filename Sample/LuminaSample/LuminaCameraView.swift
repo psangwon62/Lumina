@@ -15,6 +15,7 @@ struct LuminaCameraView: UIViewControllerRepresentable {
     
     // Camera settings from ContentView
     @Binding var position: CameraPosition
+    @Binding var flashState: FlashState
     @Binding var recordsVideo: Bool
     @Binding var streamFrames: Bool
     @Binding var trackMetadata: Bool
@@ -38,8 +39,9 @@ struct LuminaCameraView: UIViewControllerRepresentable {
         let luminaVC = LuminaViewController()
         luminaVC.delegate = context.coordinator
         
-        // Apply settings
+        // Apply settings from SwiftUI
         luminaVC.position = position
+        luminaVC.flashState = flashState
         luminaVC.recordsVideo = recordsVideo
         luminaVC.streamFrames = streamFrames
         luminaVC.trackMetadata = trackMetadata
@@ -51,8 +53,11 @@ struct LuminaCameraView: UIViewControllerRepresentable {
         luminaVC.maxZoomScale = maxZoomScale
         luminaVC.isVideoStabilizationEnabled = isVideoStabilizationEnabled
         
-        // Hide default buttons to use custom SwiftUI controls
+        // Hide all built-in UIKit buttons
+        luminaVC.setCancelButton(visible: false)
         luminaVC.setShutterButton(visible: false)
+        luminaVC.setSwitchButton(visible: false)
+        luminaVC.setFlashButton(visible: false)
         
         luminaVC.onZoomDidChange = { newZoomFactor in
             onZoomFactorChanged(newZoomFactor)
@@ -72,6 +77,14 @@ struct LuminaCameraView: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ uiViewController: LuminaViewController, context: Context) {
+        // Sync state changes from SwiftUI to the ViewController
+        if uiViewController.position != position {
+            uiViewController.position = position
+        }
+        if uiViewController.flashState != flashState {
+            uiViewController.flashState = flashState
+        }
+
         if let newZoom = commandedZoomFactor {
             uiViewController.setZoom(factor: newZoom)
             DispatchQueue.main.async {
@@ -101,17 +114,15 @@ struct LuminaCameraView: UIViewControllerRepresentable {
         }
 
         func dismissed(controller: LuminaViewController) {
-            parent.isPresented = false
+            // This is now handled by the SwiftUI overlay's dismiss button
         }
 
         func captured(stillImage: UIImage, livePhotoAt: URL?, depthData: Any?, from controller: LuminaViewController) {
             photoStore.addPhoto(stillImage)
-            // Do not dismiss the controller
         }
 
         func captured(videoAt: URL, from controller: LuminaViewController) {
-            // parent.capturedVideoURL = videoAt // Handle video if needed
-            // parent.isPresented = false
+            // Handle video if needed
         }
         
         func streamed(videoFrame: UIImage, with predictions: [LuminaRecognitionResult]?, from controller: LuminaViewController) {
