@@ -133,7 +133,13 @@ open class LuminaViewController: UIViewController {
     return promptView
   }
 
+  var focusView: UIImageView?
   var isUpdating = false
+
+  /// Set this to lock the focus on a tapped point, instead of resetting to continuous auto-focus.
+  ///
+  /// - Note: Defaults to false.
+  open var isFocusLockingEnabled: Bool = false
 
   /// The delegate for streaming output from Lumina
   weak open var delegate: LuminaDelegate?
@@ -373,6 +379,9 @@ open class LuminaViewController: UIViewController {
   }
 
   @objc func cameraDeviceDidChange(_ notification: Notification) {
+      self.focusView?.removeFromSuperview()
+      self.focusView = nil
+
       guard let device = notification.object as? AVCaptureDevice else { return }
       
       // 1. Determine the hardware factor for the wide-angle lens (the "base" for our UI zoom)
@@ -395,6 +404,17 @@ open class LuminaViewController: UIViewController {
       
       // 4. Apply the reset 1.0x UI zoom to the hardware
       self.setZoom(factor: 1.0, animated: false)
+  }
+
+  @objc func subjectAreaDidChange(_ notification: Notification) {
+      self.focusView?.removeFromSuperview()
+      self.focusView = nil
+      
+      // When the subject area changes, we should reset to continuous auto focus if focus lock is enabled.
+      if self.isFocusLockingEnabled {
+          LuminaLogger.notice(message: "Subject area changed, resetting to continuous auto focus.")
+          self.camera?.resetCameraToContinuousExposureAndFocus()
+      }
   }
 
   /// run this in order to create Lumina with a storyboard
@@ -420,6 +440,7 @@ open class LuminaViewController: UIViewController {
     createUI()
     updateUI(orientation: LuminaViewController.orientation)
     NotificationCenter.default.addObserver(self, selector: #selector(cameraDeviceDidChange), name: .luminaCameraDeviceChanged, object: nil)
+    NotificationCenter.default.addObserver(self, selector: #selector(subjectAreaDidChange), name: NSNotification.Name.AVCaptureDeviceSubjectAreaDidChange, object: nil)
     self.camera?.updateVideo { result in
       self.handleCameraSetupResult(result)
     }

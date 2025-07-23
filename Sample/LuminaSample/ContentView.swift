@@ -27,6 +27,7 @@ struct ContentView: View {
     @State private var frameRate: Int = 30
     @State private var useCoreMLModels = false
     @State private var isVideoStabilizationEnabled = false
+    @State private var isFocusLockingEnabled = false
     @State private var loggingLevel: Logger.Level = .critical
     @State private var maxZoomScale: Float = 15.0
 
@@ -53,6 +54,7 @@ struct ContentView: View {
                     Toggle("Stream Depth Data", isOn: self.$streamDepthData)
                     Toggle("Use CoreML Models", isOn: self.$useCoreMLModels)
                     Toggle("Enable Video Stabilization (OIS)", isOn: self.$isVideoStabilizationEnabled)
+                    Toggle("Enable Focus Locking", isOn: self.$isFocusLockingEnabled)
                 }
 
                 Section(header: Text("Camera Configuration")) {
@@ -94,6 +96,7 @@ struct ContentView: View {
                     frameRate: self.$frameRate,
                     useCoreMLModels: self.$useCoreMLModels,
                     isVideoStabilizationEnabled: self.$isVideoStabilizationEnabled,
+                    isFocusLockingEnabled: self.$isFocusLockingEnabled,
                     maxZoomScale: self.$maxZoomScale
                 )
                 .environmentObject(self.photoStore)
@@ -127,6 +130,7 @@ struct CameraView: View {
     @Binding var frameRate: Int
     @Binding var useCoreMLModels: Bool
     @Binding var isVideoStabilizationEnabled: Bool
+    @Binding var isFocusLockingEnabled: Bool
     @Binding var maxZoomScale: Float
 
     var body: some View {
@@ -145,6 +149,7 @@ struct CameraView: View {
                 frameRate: self.$frameRate,
                 useCoreMLModels: self.$useCoreMLModels,
                 isVideoStabilizationEnabled: self.$isVideoStabilizationEnabled,
+                isFocusLockingEnabled: self.$isFocusLockingEnabled,
                 maxZoomScale: self.$maxZoomScale,
                 onZoomFactorChanged: { newFactor in
                     self.zoomFactor = newFactor

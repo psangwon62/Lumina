@@ -26,6 +26,7 @@ struct LuminaCameraView: UIViewControllerRepresentable {
     @Binding var frameRate: Int
     @Binding var useCoreMLModels: Bool
     @Binding var isVideoStabilizationEnabled: Bool
+    @Binding var isFocusLockingEnabled: Bool
     @Binding var maxZoomScale: Float
     
     // Zoom handling
@@ -53,6 +54,7 @@ struct LuminaCameraView: UIViewControllerRepresentable {
         luminaVC.frameRate = frameRate
         luminaVC.maxZoomScale = maxZoomScale
         luminaVC.isVideoStabilizationEnabled = isVideoStabilizationEnabled
+        luminaVC.isFocusLockingEnabled = isFocusLockingEnabled
         
         // Hide all built-in UIKit buttons
         luminaVC.setCancelButton(visible: false)
