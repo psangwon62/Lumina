@@ -31,6 +31,7 @@ struct LuminaCameraView: UIViewControllerRepresentable {
     // Zoom handling
     var onZoomFactorChanged: (Float) -> Void
     @Binding var commandedZoomFactor: Float?
+    @Binding var resetZoomTrigger: Bool
     
     // Capture handling
     @Binding var captureTrigger: Bool
@@ -89,6 +90,13 @@ struct LuminaCameraView: UIViewControllerRepresentable {
             uiViewController.setZoom(factor: newZoom)
             DispatchQueue.main.async {
                 self.commandedZoomFactor = nil // Reset the command
+            }
+        }
+        
+        if resetZoomTrigger {
+            uiViewController.resetZoom()
+            DispatchQueue.main.async {
+                self.resetZoomTrigger = false // Reset the command
             }
         }
         

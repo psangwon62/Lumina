@@ -268,6 +268,12 @@ open class LuminaViewController: UIViewController {
     }
   }
 
+  public func resetZoom() {
+    self.currentZoomScale = 1.0
+    self.beginZoomScale = 1.0
+    setZoom(factor: 1.0, animated: true)
+  }
+
   public func startCamera() {
     self.camera?.start()
   }

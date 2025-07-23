@@ -11,27 +11,39 @@ import AVFoundation
 
 extension LuminaViewController {
   @objc func handlePinchGestureRecognizer(recognizer: UIPinchGestureRecognizer) {
-    guard self.position == .back, let device = self.camera?.videoInput?.device else {
-        return
-    }
+    guard let device = self.camera?.videoInput?.device else { return }
 
     if recognizer.state == .began {
-        // Capture the current hardware zoom scale when the gesture starts
-        beginZoomScale = self.currentZoomScale
+        // Ensure beginZoomScale is the UI-facing scale at the start of the gesture.
+        // This is now correctly set by the gestureRecognizerShouldBegin delegate method
+        // and maintained by this handler.
     }
 
-    let minZoom = Float(device.minAvailableVideoZoomFactor)
-    let maxZoom = min(maxZoomScale, Float(device.maxAvailableVideoZoomFactor))
-    
-    let newZoomFactor = min(maxZoom, max(minZoom, beginZoomScale * Float(recognizer.scale)))
+    // Calculate the new UI-facing zoom scale based on the gesture.
+    let newUIScale = beginZoomScale * Float(recognizer.scale)
 
-    do {
-        try device.lockForConfiguration()
-        device.videoZoomFactor = CGFloat(newZoomFactor)
-        device.unlockForConfiguration()
-    } catch {
-        LuminaLogger.error(message: "Could not lock device for configuration: \(error)")
-        device.unlockForConfiguration()
+    // Determine the effective maximum UI scale by considering BOTH the user-defined
+    // `maxZoomScale` AND the hardware's physical limit converted to UI scale.
+    let hardwareMax = Float(device.maxAvailableVideoZoomFactor)
+    let effectiveMaxUIScale = min(self.maxZoomScale, hardwareMax / self.wideAngleZoomFactor)
+
+    // Determine the effective minimum UI scale based on the hardware's physical limit.
+    let hardwareMin = Float(device.minAvailableVideoZoomFactor)
+    let effectiveMinUIScale = hardwareMin / self.wideAngleZoomFactor
+
+    // Clamp the new UI scale between the effective minimum and maximum.
+    let clampedUIScale = max(effectiveMinUIScale, min(newUIScale, effectiveMaxUIScale))
+
+    // Apply the zoom to the hardware via our centralized function.
+    setZoom(factor: clampedUIScale, animated: false)
+
+    // Directly update our state and the UI text label. This is now the source of truth.
+    self.currentZoomScale = clampedUIScale
+    self.onZoomDidChange?(clampedUIScale)
+
+    if recognizer.state == .ended || recognizer.state == .cancelled {
+        // Update the beginZoomScale for the *next* gesture.
+        beginZoomScale = clampedUIScale
     }
   }
 
@@ -92,37 +104,9 @@ extension LuminaViewController {
     DispatchQueue.main.async {
       switch result {
         case .videoSuccess:
-          if let camera = self.camera, let device = camera.videoInput?.device {
+          if let camera = self.camera {
             self.enableUI(valid: true)
             self.updateUI(orientation: LuminaViewController.orientation)
-            
-            self.wideAngleZoomFactor = device.virtualDeviceSwitchOverVideoZoomFactors.first { $0.floatValue > 1.0 }?.floatValue ?? 1.0
-
-            let initialZoomFactor = self.wideAngleZoomFactor
-            
-            // Manually set the device's zoom factor AND our internal state to match
-            do {
-                try device.lockForConfiguration()
-                device.videoZoomFactor = CGFloat(initialZoomFactor)
-                device.unlockForConfiguration()
-                self.currentZoomScale = initialZoomFactor // Synchronize internal state
-            } catch {
-                LuminaLogger.error(message: "Could not lock device for initial zoom configuration: \(error)")
-            }
-            
-            // Set up KVO to observe zoom factor changes. This is the single source of truth.
-            self.zoomObservation = device.observe(\.videoZoomFactor, options: .new) { [weak self] _, change in
-                guard let self = self, let newHardwareZoomFactor = change.newValue else { return }
-                
-                // Update the internal state
-                self.currentZoomScale = Float(newHardwareZoomFactor)
-                
-                // Update the UI
-                DispatchQueue.main.async {
-                    self.onZoomDidChange?(Float(newHardwareZoomFactor) / self.wideAngleZoomFactor)
-                }
-            }
-            
             camera.start()
           }
         case .audioSuccess:

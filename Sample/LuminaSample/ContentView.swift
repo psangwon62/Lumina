@@ -33,6 +33,7 @@ struct ContentView: View {
     // Camera UI State
     @State private var zoomFactor: Float = 1.0
     @State private var commandedZoomFactor: Float? = nil
+    @State private var resetZoomTrigger = false
     @State private var captureTrigger = false
     @State private var flashState: FlashState = .off
 
@@ -79,6 +80,7 @@ struct ContentView: View {
                 CameraView(
                     zoomFactor: self.$zoomFactor,
                     commandedZoomFactor: self.$commandedZoomFactor,
+                    resetZoomTrigger: self.$resetZoomTrigger,
                     captureTrigger: self.$captureTrigger,
                     flashState: self.$flashState,
                     position: self.$position,
@@ -109,6 +111,7 @@ struct CameraView: View {
 
     @Binding var zoomFactor: Float
     @Binding var commandedZoomFactor: Float?
+    @Binding var resetZoomTrigger: Bool
     @Binding var captureTrigger: Bool
     @Binding var flashState: FlashState
 
@@ -147,6 +150,7 @@ struct CameraView: View {
                     self.zoomFactor = newFactor
                 },
                 commandedZoomFactor: self.$commandedZoomFactor,
+                resetZoomTrigger: self.$resetZoomTrigger,
                 captureTrigger: self.$captureTrigger
             )
             .ignoresSafeArea()
@@ -186,7 +190,8 @@ struct CameraView: View {
                     .background(Color.black.opacity(0.5))
                     .cornerRadius(10)
                     .onTapGesture {
-                        self.commandedZoomFactor = 1.0
+                        self.zoomFactor = 1.0
+                        self.resetZoomTrigger = true
                     }
 
                 HStack(alignment: .center) {
@@ -217,7 +222,8 @@ struct CameraView: View {
                     Button(action: {
                         self.position = (self.position == .back) ? .front : .back
                         // Reset zoom to 1x when switching cameras
-                        self.commandedZoomFactor = 1.0
+                        self.zoomFactor = 1.0
+                        self.resetZoomTrigger = true
                     }) {
                         Image(systemName: "arrow.triangle.2.circlepath.camera.fill")
                             .font(.largeTitle)
