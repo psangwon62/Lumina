@@ -110,7 +110,7 @@ extension LuminaCamera {
   }
 
   private func videoSetupApproved() -> CameraSetupResult {
-    self.torchState = .off
+    self.session.beginConfiguration()
     
     guard let videoInput = self.getNewVideoInputDevice() else {
       return .invalidVideoInput
@@ -241,7 +241,6 @@ extension LuminaCamera {
     if self.streamDepthData, let depthDataOutput = self.depthDataOutput {
       LuminaLogger.notice(message: "adding streaming depth data output to capture session")
       session.addOutput(depthDataOutput)
-      session.commitConfiguration()
     }
   }
 }

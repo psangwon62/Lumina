@@ -133,7 +133,14 @@ open class LuminaViewController: UIViewController {
     return promptView
   }
 
-  var focusView: UIImageView?
+  lazy var focusView: UIImageView = {
+      let focusView = UIImageView(image: UIImage(systemName: "camera.metering.partial")?.withTintColor(.white, renderingMode: .alwaysOriginal))
+      focusView.contentMode = .scaleAspectFit
+      focusView.frame = CGRect(x: 0, y: 0, width: 50, height: 50)
+      focusView.alpha = 0.0 // Initially hidden
+      self.view.addSubview(focusView)
+      return focusView
+  }()
   var isUpdating = false
 
   /// Set this to lock the focus on a tapped point, instead of resetting to continuous auto-focus.
@@ -379,8 +386,8 @@ open class LuminaViewController: UIViewController {
   }
 
   @objc func cameraDeviceDidChange(_ notification: Notification) {
-      self.focusView?.removeFromSuperview()
-      self.focusView = nil
+      // Hide the focus view when the camera changes
+      self.focusView.alpha = 0.0
 
       guard let device = notification.object as? AVCaptureDevice else { return }
       
@@ -407,8 +414,8 @@ open class LuminaViewController: UIViewController {
   }
 
   @objc func subjectAreaDidChange(_ notification: Notification) {
-      self.focusView?.removeFromSuperview()
-      self.focusView = nil
+      // Hide the focus view when the subject area changes
+      self.focusView.alpha = 0.0
       
       // When the subject area changes, we should reset to continuous auto focus if focus lock is enabled.
       if self.isFocusLockingEnabled {

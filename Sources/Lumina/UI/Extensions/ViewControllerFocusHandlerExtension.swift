@@ -30,32 +30,22 @@ extension LuminaViewController {
   }
 
   private func showFocusView(at point: CGPoint) {
-    // Remove any existing focus view
-    self.focusView?.removeFromSuperview()
-    self.focusView = nil
+    // Bring the existing lazy-loaded focus view to the front and set its new position.
+    self.view.bringSubviewToFront(self.focusView)
+    self.focusView.center = point
 
-    let focusView = UIImageView(image: UIImage(systemName: "camera.metering.partial")?.withTintColor(.white, renderingMode: .alwaysOriginal))
-    focusView.contentMode = .scaleAspectFit
-    focusView.frame = CGRect(x: 0, y: 0, width: 50, height: 50)
-    focusView.transform = CGAffineTransform(scaleX: 1.7, y: 1.7)
-    focusView.center = point
-    focusView.alpha = 0.0
-    
-    self.view.addSubview(focusView)
-    self.focusView = focusView
+    // Cancel any ongoing fade-out animations.
+    self.focusView.layer.removeAllAnimations()
 
-    UIView.animate(withDuration: 0.3, animations: {
-        focusView.alpha = 1.0
-        focusView.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
+    // Animate the appearance.
+    UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseIn, animations: {
+        self.focusView.alpha = 1.0
+        self.focusView.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
     }, completion: { _ in
-        // If focus lock is disabled, fade the view out after a delay.
-        // Otherwise, it will remain visible.
+        // If focus lock is disabled, plan to fade it out.
         if !self.isFocusLockingEnabled {
             UIView.animate(withDuration: 1.0, delay: 0.5, options: .curveEaseOut, animations: {
-                self.focusView?.alpha = 0.0
-            }, completion: { _ in
-                self.focusView?.removeFromSuperview()
-                self.focusView = nil
+                self.focusView.alpha = 0.0
             })
         }
     })

@@ -14,9 +14,8 @@ extension LuminaViewController {
     guard let device = self.camera?.videoInput?.device else { return }
 
     if recognizer.state == .began {
-        // Ensure beginZoomScale is the UI-facing scale at the start of the gesture.
-        // This is now correctly set by the gestureRecognizerShouldBegin delegate method
-        // and maintained by this handler.
+        // The gesture's beginning scale is captured here to ensure smooth zooming.
+        beginZoomScale = currentZoomScale
     }
 
     // Calculate the new UI-facing zoom scale based on the gesture.
@@ -37,14 +36,11 @@ extension LuminaViewController {
     // Apply the zoom to the hardware via our centralized function.
     setZoom(factor: clampedUIScale, animated: false)
 
-    // Directly update our state and the UI text label. This is now the source of truth.
+    // Directly update the zoom state and notify the delegate.
+    // NOTE: This direct callback approach is used over KVO for better performance
+    // and to avoid potential issues with SwiftUI state updates.
     self.currentZoomScale = clampedUIScale
     self.onZoomDidChange?(clampedUIScale)
-
-    if recognizer.state == .ended || recognizer.state == .cancelled {
-        // Update the beginZoomScale for the *next* gesture.
-        beginZoomScale = clampedUIScale
-    }
   }
 
   @objc func handleTapGestureRecognizer(recognizer: UITapGestureRecognizer) {
