@@ -1,10 +1,3 @@
-//
-//  PhotoStore.swift
-//  LuminaSample
-//
-//  Created by [Your Name] on 2025/07/23.
-//
-
 import SwiftUI
 import Combine
 

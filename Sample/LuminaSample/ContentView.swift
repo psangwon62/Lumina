@@ -1,10 +1,3 @@
-//
-//  ContentView.swift
-//  LuminaSample
-//
-//  Created by [Your Name] on 2025/07/23.
-//
-
 import CoreML
 import Logging
 import Lumina
