@@ -45,9 +45,15 @@ extension LuminaViewController {
     UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut, animations: {
         self.focusView.alpha = 1.0
         self.focusView.transform = .identity
-    }, completion: { _ in
-        // If focus lock is disabled, plan to fade it out.
-        if !self.isFocusLockingEnabled {
+    }, completion: { [weak self] _ in
+        guard let self else { return }
+        if self.isFocusLockingEnabled {
+            // Focus is locked: wait 0.5s, then fade to partial opacity.
+            UIView.animate(withDuration: 0.3, delay: 0.5, options: .curveEaseOut, animations: {
+                self.focusView.alpha = 0.5
+            })
+        } else {
+            // Focus is not locked: wait 0.5s, then fade out completely.
             UIView.animate(withDuration: 1.0, delay: 0.5, options: .curveEaseOut, animations: {
                 self.focusView.alpha = 0.0
             })

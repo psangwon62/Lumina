@@ -55,7 +55,7 @@ struct LuminaCameraView: UIViewControllerRepresentable {
         luminaVC.maxZoomScale = maxZoomScale
         luminaVC.isVideoStabilizationEnabled = isVideoStabilizationEnabled
         luminaVC.isFocusLockingEnabled = isFocusLockingEnabled
-        luminaVC.focusImage = UIImage(systemName: "square.dashed")?.withTintColor(.white, renderingMode: .alwaysOriginal)
+        luminaVC.focusImage = UIImage(resource: .focus)
         
         // Hide all built-in UIKit buttons
         luminaVC.setCancelButton(visible: false)

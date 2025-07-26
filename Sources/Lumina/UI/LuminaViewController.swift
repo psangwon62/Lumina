@@ -452,7 +452,7 @@ open class LuminaViewController: UIViewController {
       let image = self.focusImage ?? UIImage(systemName: "camera.metering.partial")?.withTintColor(.white, renderingMode: .alwaysOriginal)
       focusView = UIImageView(image: image)
       focusView.contentMode = .scaleAspectFit
-      focusView.frame = CGRect(x: 0, y: 0, width: 50, height: 50)
+      focusView.frame = CGRect(x: 0, y: 0, width: 70, height: 70)
       focusView.alpha = 0.0
       
       // Add the focus view to the dedicated overlay view.
