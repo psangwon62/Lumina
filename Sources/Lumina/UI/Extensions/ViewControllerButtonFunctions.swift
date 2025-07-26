@@ -58,33 +58,32 @@ extension LuminaViewController {
     switch self.position {
       case .back:
         self.position = .front
-        torchButtonTapped()
       default:
         self.position = .back
     }
   }
 
-  @objc func torchButtonTapped() {
-    LuminaLogger.notice(message: "torch button tapped")
+  @objc func flashButtonTapped() {
+    LuminaLogger.notice(message: "flash button tapped")
     guard let camera = self.camera, self.position == .back else {
-      LuminaLogger.notice(message: "camera not found, or on front camera - defaulting to off")
-      self.camera?.torchState = .off
-      self.torchButton.updateTorchIcon(to: SystemButtonType.FlashState.off)
+      LuminaLogger.notice(message: "camera not found, or on front camera, so flash is unavailable")
+      self.camera?.flashState = .off
+      self.flashButton.updateFlashIcon(to: SystemButtonType.FlashState.off)
       return
     }
-    switch camera.torchState {
+    switch camera.flashState {
       case .off:
-        LuminaLogger.notice(message: "torch mode should be set to on")
-        camera.torchState = .on(intensity: 1.0)
-        self.torchButton.updateTorchIcon(to: SystemButtonType.FlashState.on)
-      case .on(_):
-        LuminaLogger.notice(message: "torch mode should be set to auto")
-        camera.torchState = .auto
-        self.torchButton.updateTorchIcon(to: SystemButtonType.FlashState.auto)
+        LuminaLogger.notice(message: "flash mode changed to on")
+        camera.flashState = .on
+        self.flashButton.updateFlashIcon(to: SystemButtonType.FlashState.on)
+      case .on:
+        LuminaLogger.notice(message: "flash mode changed to auto")
+        camera.flashState = .auto
+        self.flashButton.updateFlashIcon(to: SystemButtonType.FlashState.auto)
       case .auto:
-        LuminaLogger.notice(message: "torch mode should be set to off")
-        camera.torchState = .off
-        self.torchButton.updateTorchIcon(to: SystemButtonType.FlashState.off)
+        LuminaLogger.notice(message: "flash mode changed to off")
+        camera.flashState = .off
+        self.flashButton.updateFlashIcon(to: SystemButtonType.FlashState.off)
     }
   }
 }

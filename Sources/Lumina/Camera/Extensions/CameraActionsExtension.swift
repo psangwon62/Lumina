@@ -23,8 +23,8 @@ extension LuminaCamera {
       LuminaLogger.notice(message: "Will capture photo with HEVC codec")
       settings = AVCapturePhotoSettings(format: [AVVideoCodecKey: AVVideoCodecType.hevc])
     }
-    switch self.torchState {
-      case .on(_):
+    switch self.flashState {
+      case .on:
         settings.flashMode = .on
       case .off:
         settings.flashMode = .off

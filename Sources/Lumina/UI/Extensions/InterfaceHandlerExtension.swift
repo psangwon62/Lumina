@@ -11,18 +11,41 @@ import AVFoundation
 
 extension LuminaViewController {
   @objc func handlePinchGestureRecognizer(recognizer: UIPinchGestureRecognizer) {
-    guard self.position == .back else {
-      return
+    guard let device = self.camera?.videoInput?.device else { return }
+
+    if recognizer.state == .began {
+        // The gesture's beginning scale is captured here to ensure smooth zooming.
+        beginZoomScale = currentZoomScale
     }
-    currentZoomScale = min(maxZoomScale, max(1.0, beginZoomScale * Float(recognizer.scale)))
-    LuminaLogger.notice(message: "setting zoom scale to \(currentZoomScale)")
+
+    // Calculate the new UI-facing zoom scale based on the gesture.
+    let newUIScale = beginZoomScale * Float(recognizer.scale)
+
+    // Determine the effective maximum UI scale by considering BOTH the user-defined
+    // `maxZoomScale` AND the hardware's physical limit converted to UI scale.
+    let hardwareMax = Float(device.maxAvailableVideoZoomFactor)
+    let effectiveMaxUIScale = min(self.maxZoomScale, hardwareMax / self.wideAngleZoomFactor)
+
+    // Determine the effective minimum UI scale based on the hardware's physical limit.
+    let hardwareMin = Float(device.minAvailableVideoZoomFactor)
+    let effectiveMinUIScale = hardwareMin / self.wideAngleZoomFactor
+
+    // Clamp the new UI scale between the effective minimum and maximum.
+    let clampedUIScale = max(effectiveMinUIScale, min(newUIScale, effectiveMaxUIScale))
+
+    // Apply the zoom to the hardware via our centralized function.
+    setZoom(factor: clampedUIScale, animated: false)
+
+    // Directly update the zoom state and notify the delegate.
+    // NOTE: This direct callback approach is used over KVO for better performance
+    // and to avoid potential issues with SwiftUI state updates.
+    self.currentZoomScale = clampedUIScale
+    self.onZoomDidChange?(clampedUIScale)
   }
 
   @objc func handleTapGestureRecognizer(recognizer: UITapGestureRecognizer) {
     delegate?.tapped(at: recognizer.location(in: view), from: self)
-    if position == .back {
-      focusCamera(at: recognizer.location(in: view))
-    }
+    focusCamera(at: recognizer.location(in: view))
   }
 
   func createUI() {
@@ -31,7 +54,7 @@ extension LuminaViewController {
     self.view.addSubview(self.cancelButton)
     self.view.addSubview(self.shutterButton)
     self.view.addSubview(self.switchButton)
-    self.view.addSubview(self.torchButton)
+    self.view.addSubview(self.flashButton)
     self.view.addSubview(self.textPromptView)
     self.view.addGestureRecognizer(self.zoomRecognizer)
     self.view.addGestureRecognizer(self.focusRecognizer)
@@ -42,7 +65,7 @@ extension LuminaViewController {
     DispatchQueue.main.async {
       self.shutterButton.isEnabled = valid
       self.switchButton.isEnabled = valid
-      self.torchButton.isEnabled = valid
+      self.flashButton.isEnabled = valid
     }
   }
 
@@ -60,7 +83,7 @@ extension LuminaViewController {
     let frame = self.view.safeAreaLayoutGuide.layoutFrame
     self.switchButton.center = CGPoint(x: frame.maxX - 30, y: frame.minY + 25)
     self.cancelButton.center = CGPoint(x: frame.minX + 55, y: frame.maxY - 45)
-    self.torchButton.center = CGPoint(x: frame.minX + 25, y: frame.minY + 25)
+    self.flashButton.center = CGPoint(x: frame.minX + 25, y: frame.minY + 25)
     self.shutterButton.center = CGPoint(x: frame.midX, y: frame.maxY - 45)
 
     let textWidth = frame.maxX - 110

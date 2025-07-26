@@ -23,6 +23,15 @@ open class LuminaViewController: UIViewController {
       camera?.torchState = newValue
     }
   }
+  
+  public var flashState: FlashState {
+      get {
+          return camera?.flashState ?? .off
+      }
+      set(newValue) {
+          camera?.flashState = newValue
+      }
+  }
 
   private var _previewLayer: AVCaptureVideoPreviewLayer?
   var previewLayer: AVCaptureVideoPreviewLayer {
@@ -103,14 +112,14 @@ open class LuminaViewController: UIViewController {
     return button
   }
 
-  private var _torchButton: LuminaButton?
-  var torchButton: LuminaButton {
-    if let currentButton = _torchButton {
+  private var _flashButton: LuminaButton?
+  var flashButton: LuminaButton {
+    if let currentButton = _flashButton {
       return currentButton
     }
-    let button = LuminaButton(with: SystemButtonType.torch)
-    button.addTarget(self, action: #selector(torchButtonTapped), for: .touchUpInside)
-    _torchButton = button
+    let button = LuminaButton(with: SystemButtonType.flash)
+    button.addTarget(self, action: #selector(flashButtonTapped), for: .touchUpInside)
+    _flashButton = button
     return button
   }
 
@@ -124,7 +133,17 @@ open class LuminaViewController: UIViewController {
     return promptView
   }
 
+  var focusOverlayView: UIView!
+  var focusView: UIImageView!
   var isUpdating = false
+
+  /// Set this to lock the focus on a tapped point, instead of resetting to continuous auto-focus.
+  ///
+  /// - Note: Defaults to false.
+  open var isFocusLockingEnabled: Bool = false
+
+  /// The image to be used for the focus view. If nil, a default system image will be used.
+  open var focusImage: UIImage?
 
   /// The delegate for streaming output from Lumina
   weak open var delegate: LuminaDelegate?
@@ -226,12 +245,43 @@ open class LuminaViewController: UIViewController {
     switchButton.isHidden = !visible
   }
 
-  public func setTorchButton(visible: Bool) {
-    torchButton.isHidden = !visible
+  public func setFlashButton(visible: Bool) {
+    flashButton.isHidden = !visible
+  }
+
+  public func captureStillImage() {
+    guard let camera = self.camera else {
+        return
+    }
+    camera.captureStillImage()
   }
 
   public func pauseCamera() {
     self.camera?.stop()
+  }
+
+  public func setZoom(factor: Float, animated: Bool = true) {
+    let hardwareFactor = factor * wideAngleZoomFactor
+    guard let device = self.camera?.videoInput?.device else { return }
+    do {
+        try device.lockForConfiguration()
+        if animated {
+            // A rate of 1.0 is slow, 30.0 is very fast.
+            device.ramp(toVideoZoomFactor: CGFloat(hardwareFactor), withRate: 10.0)
+        } else {
+            device.videoZoomFactor = CGFloat(hardwareFactor)
+        }
+        device.unlockForConfiguration()
+    } catch {
+        LuminaLogger.error(message: "Could not lock device for configuration: \(error)")
+        device.unlockForConfiguration()
+    }
+  }
+
+  public func resetZoom() {
+    self.currentZoomScale = 1.0
+    self.beginZoomScale = 1.0
+    setZoom(factor: 1.0, animated: true)
   }
 
   public func startCamera() {
@@ -290,6 +340,16 @@ open class LuminaViewController: UIViewController {
     }
   }
 
+  /// Set this to enable video stabilization.
+  ///
+  /// - Note: This enables OIS (Optical Image Stabilization) if the device supports it.
+  open var isVideoStabilizationEnabled: Bool = false {
+    didSet {
+      LuminaLogger.notice(message: "Setting video stabilization to \(isVideoStabilizationEnabled)")
+      self.camera?.isVideoStabilizationEnabled = isVideoStabilizationEnabled
+    }
+  }
+
   /// Set this to apply a level of logging to Lumina, to track activity within the framework
   public static var loggingLevel: Logger.Level = .critical {
     didSet {
@@ -297,11 +357,12 @@ open class LuminaViewController: UIViewController {
     }
   }
 
-  public var currentZoomScale: Float = 1.0 {
-    didSet {
-      self.camera?.currentZoomScale = currentZoomScale
-    }
-  }
+  /// The current zoom scale of the camera
+  public var currentZoomScale: Float = 1.0
+  
+  var wideAngleZoomFactor: Float = 1.0
+  public var onZoomDidChange: ((Float) -> Void)?
+  var zoomObservation: NSKeyValueObservation?
 
   var beginZoomScale: Float = 1.0
 
@@ -314,6 +375,50 @@ open class LuminaViewController: UIViewController {
     if let version = LuminaViewController.getVersion() {
       LuminaLogger.info(message: "Loading Lumina v\(version)")
     }
+  }
+  
+  deinit {
+      zoomObservation?.invalidate()
+      NotificationCenter.default.removeObserver(self)
+  }
+
+  @objc func cameraDeviceDidChange(_ notification: Notification) {
+      // Hide the focus view when the camera changes
+      self.focusView.alpha = 0.0
+
+      guard let device = notification.object as? AVCaptureDevice else { return }
+      
+      // 1. Determine the hardware factor for the wide-angle lens (the "base" for our UI zoom)
+      if device.position == .back && device.isVirtualDevice {
+          if let factor = device.virtualDeviceSwitchOverVideoZoomFactors.first {
+              self.wideAngleZoomFactor = Float(factor.doubleValue)
+          } else {
+              self.wideAngleZoomFactor = 1.0
+          }
+      } else {
+          self.wideAngleZoomFactor = 1.0
+      }
+      
+      // 2. Reset all UI-facing zoom states to 1.0x
+      self.currentZoomScale = 1.0
+      self.beginZoomScale = 1.0
+      
+      // 3. Update the UI label to show 1.0x
+      self.onZoomDidChange?(1.0)
+      
+      // 4. Apply the reset 1.0x UI zoom to the hardware
+      self.setZoom(factor: 1.0, animated: false)
+  }
+
+  @objc func subjectAreaDidChange(_ notification: Notification) {
+      // Hide the focus view when the subject area changes
+      self.focusView.alpha = 0.0
+      
+      // When the subject area changes, we should reset to continuous auto focus if focus lock is enabled.
+      if self.isFocusLockingEnabled {
+          LuminaLogger.notice(message: "Subject area changed, resetting to continuous auto focus.")
+          self.camera?.resetCameraToContinuousExposureAndFocus()
+      }
   }
 
   /// run this in order to create Lumina with a storyboard
@@ -333,11 +438,34 @@ open class LuminaViewController: UIViewController {
     LuminaLogger.error(message: "Camera framework is overloading on memory")
   }
 
+  open override func viewDidLoad() {
+      super.viewDidLoad()
+
+      // Setup the overlay view for focus animations.
+      focusOverlayView = UIView(frame: self.view.bounds)
+      focusOverlayView.backgroundColor = .clear
+      focusOverlayView.isUserInteractionEnabled = false
+      focusOverlayView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+      self.view.addSubview(focusOverlayView)
+
+      // Create the focus view, respecting the custom focusImage if provided.
+      let image = self.focusImage ?? UIImage(systemName: "camera.metering.partial")?.withTintColor(.white, renderingMode: .alwaysOriginal)
+      focusView = UIImageView(image: image)
+      focusView.contentMode = .scaleAspectFit
+      focusView.frame = CGRect(x: 0, y: 0, width: 70, height: 70)
+      focusView.alpha = 0.0
+      
+      // Add the focus view to the dedicated overlay view.
+      focusOverlayView.addSubview(self.focusView)
+  }
+
   /// override with caution
   open override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     createUI()
     updateUI(orientation: LuminaViewController.orientation)
+    NotificationCenter.default.addObserver(self, selector: #selector(cameraDeviceDidChange), name: .luminaCameraDeviceChanged, object: nil)
+    NotificationCenter.default.addObserver(self, selector: #selector(subjectAreaDidChange), name: NSNotification.Name.AVCaptureDeviceSubjectAreaDidChange, object: nil)
     self.camera?.updateVideo { result in
       self.handleCameraSetupResult(result)
     }

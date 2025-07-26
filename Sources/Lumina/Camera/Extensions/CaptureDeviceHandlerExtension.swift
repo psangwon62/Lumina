@@ -61,19 +61,35 @@ extension LuminaCamera {
   }
 
   func getDevice(with position: AVCaptureDevice.Position) -> AVCaptureDevice? {
-    if position == .front {
-      if let device = AVCaptureDevice.default(.builtInTrueDepthCamera, for: .video, position: .front) {
+    // For the back camera, we want the best virtual camera available.
+    if position == .back {
+        var bestDevice: AVCaptureDevice?
+        if #available(iOS 13.0, *) {
+            // Prefer the triple camera, then dual wide, then dual.
+            if let device = AVCaptureDevice.default(.builtInTripleCamera, for: .video, position: .back) {
+                bestDevice = device
+            } else if let device = AVCaptureDevice.default(.builtInDualWideCamera, for: .video, position: .back) {
+                bestDevice = device
+            } else if let device = AVCaptureDevice.default(.builtInDualCamera, for: .video, position: .back) {
+                bestDevice = device
+            }
+        }
+
+        // If we found a virtual camera, use it.
+        if let device = bestDevice {
+            LuminaLogger.notice(message: "Using virtual device: \(device.localizedName)")
+            self.currentCaptureDevice = device
+            return device
+        }
+    }
+    
+    // Otherwise, or for the front camera, fall back to the standard wide-angle camera.
+    if let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: position) {
+        LuminaLogger.notice(message: "Using fallback or front device: \(device.localizedName)")
         self.currentCaptureDevice = device
         return device
-      }
     }
-    if let device = AVCaptureDevice.default(.builtInDualCamera, for: .video, position: position) {
-      self.currentCaptureDevice = device
-      return device
-    } else if let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: position) {
-      self.currentCaptureDevice = device
-      return device
-    }
+    
     return nil
   }
 
@@ -113,7 +129,7 @@ extension LuminaCamera {
     let device = input.device
     do {
       try device.lockForConfiguration()
-      let newZoomScale = min(maxZoomScale, max(Float(1.0), min(currentZoomScale, Float(device.activeFormat.videoMaxZoomFactor))))
+      let newZoomScale = min(maxZoomScale, max(Float(device.minAvailableVideoZoomFactor), min(currentZoomScale, Float(device.maxAvailableVideoZoomFactor))))
       device.videoZoomFactor = CGFloat(newZoomScale)
       device.unlockForConfiguration()
     } catch {

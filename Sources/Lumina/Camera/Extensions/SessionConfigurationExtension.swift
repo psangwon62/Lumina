@@ -110,32 +110,49 @@ extension LuminaCamera {
   }
 
   private func videoSetupApproved() -> CameraSetupResult {
-    self.torchState = .off
-    self.session.sessionPreset = .high // set to high here so that device input can be added to session. resolution can be checked for update later
+    self.session.beginConfiguration()
+    
     guard let videoInput = self.getNewVideoInputDevice() else {
       return .invalidVideoInput
     }
+    
     if let failureResult = checkSessionValidity(for: videoInput) {
       return failureResult
     }
+    
     self.videoInput = videoInput
     self.session.addInput(videoInput)
+    
     if self.streamFrames {
       LuminaLogger.notice(message: "adding video data output to session")
       self.session.addOutput(self.videoDataOutput)
+      if let connection = self.videoDataOutput.connection(with: .video) {
+          if connection.isVideoStabilizationSupported {
+              connection.preferredVideoStabilizationMode = self.isVideoStabilizationEnabled ? .auto : .off
+          }
+      }
     }
+    
     self.session.addOutput(self.photoOutput)
-    self.session.commitConfiguration()
+    
     if self.session.canSetSessionPreset(self.resolution.foundationPreset()) {
       LuminaLogger.notice(message: "creating video session with resolution: \(self.resolution.rawValue)")
       self.session.sessionPreset = self.resolution.foundationPreset()
     }
+    
     configureVideoRecordingOutput(for: self.session)
     configureMetadataOutput(for: self.session)
     configureHiResPhotoOutput(for: self.session)
     configureLivePhotoOutput(for: self.session)
     configureDepthDataOutput(for: self.session)
     configureFrameRate()
+    
+    self.session.commitConfiguration()
+    
+    DispatchQueue.main.async {
+        NotificationCenter.default.post(name: .luminaCameraDeviceChanged, object: self.videoInput?.device)
+    }
+    
     return .videoSuccess
   }
 
@@ -178,7 +195,7 @@ extension LuminaCamera {
       self.session.addOutput(self.videoFileOutput)
       if let connection = self.videoFileOutput.connection(with: .video) {
         if connection.isVideoStabilizationSupported {
-          connection.preferredVideoStabilizationMode = .auto
+          connection.preferredVideoStabilizationMode = self.isVideoStabilizationEnabled ? .auto : .off
         }
       }
     }
@@ -224,7 +241,6 @@ extension LuminaCamera {
     if self.streamDepthData, let depthDataOutput = self.depthDataOutput {
       LuminaLogger.notice(message: "adding streaming depth data output to capture session")
       session.addOutput(depthDataOutput)
-      session.commitConfiguration()
     }
   }
 }

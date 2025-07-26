@@ -16,7 +16,7 @@ enum SystemButtonType {
     case auto
   }
 
-  case torch
+  case flash
   case cameraSwitch
   case photoCapture
   case cancel
@@ -73,7 +73,7 @@ final class LuminaButton: UIButton {
       titleLabel.font = UIFont.systemFont(ofSize: 20)
     }
     switch systemStyle {
-      case .torch:
+      case .flash:
         self.image = UIImage(systemName: "bolt.slash.fill", withConfiguration: symbolConfig)?.withTintColor(.white, renderingMode: .alwaysOriginal)
         self.frame = CGRect(origin: CGPoint(x: 10, y: 10), size: CGSize(width: self.squareSystemButtonWidth, height: self.squareSystemButtonHeight))
       case .cameraSwitch:
@@ -141,20 +141,20 @@ final class LuminaButton: UIButton {
 }
 
 extension LuminaButton {
-  func updateTorchIcon(to state: SystemButtonType.FlashState) {
-    guard let style = self.style, style == .torch else {
+  func updateFlashIcon(to state: SystemButtonType.FlashState) {
+    guard let style = self.style, style == .flash else {
       return
     }
     switch state {
       case .on:
         self.image = UIImage(systemName: "bolt.fill", withConfiguration: symbolConfig)?.withTintColor(.white, renderingMode: .alwaysOriginal)
-        LuminaLogger.debug(message: "torch icon updated to on")
+        LuminaLogger.debug(message: "flash icon updated to on")
       case .off:
         self.image = UIImage(systemName: "bolt.slash.fill", withConfiguration: symbolConfig)?.withTintColor(.white, renderingMode: .alwaysOriginal)
-        LuminaLogger.debug(message: "torch icon updated to off")
+        LuminaLogger.debug(message: "flash icon updated to off")
       case .auto:
         self.image = UIImage(systemName: "bolt.badge.a.fill", withConfiguration: symbolConfig)?.withTintColor(.white, renderingMode: .alwaysOriginal)
-        LuminaLogger.debug(message: "torch icon updated to auto")
+        LuminaLogger.debug(message: "flash icon updated to auto")
     }
   }
 }
