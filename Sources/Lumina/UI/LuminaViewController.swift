@@ -148,6 +148,9 @@ open class LuminaViewController: UIViewController {
   /// - Note: Defaults to false.
   open var isFocusLockingEnabled: Bool = false
 
+  /// The image to be used for the focus view. If nil, a default system image will be used.
+  open var focusImage: UIImage?
+
   /// The delegate for streaming output from Lumina
   weak open var delegate: LuminaDelegate?
 
@@ -439,6 +442,18 @@ open class LuminaViewController: UIViewController {
   open override func didReceiveMemoryWarning() {
     super.didReceiveMemoryWarning()
     LuminaLogger.error(message: "Camera framework is overloading on memory")
+  }
+
+  open override func viewDidLoad() {
+      super.viewDidLoad()
+      // Create and add the focus view invisibly from the start to prevent flicker on first tap.
+      let image = self.focusImage ?? UIImage(systemName: "camera.metering.partial")?.withTintColor(.white, renderingMode: .alwaysOriginal)
+      let focusView = UIImageView(image: image)
+      focusView.contentMode = .scaleAspectFit
+      focusView.frame = CGRect(x: 0, y: 0, width: 50, height: 50)
+      focusView.alpha = 0.0
+      self.view.addSubview(focusView)
+      self.focusView = focusView
   }
 
   /// override with caution
