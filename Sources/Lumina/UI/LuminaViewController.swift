@@ -133,14 +133,8 @@ open class LuminaViewController: UIViewController {
     return promptView
   }
 
-  lazy var focusView: UIImageView = {
-      let focusView = UIImageView(image: UIImage(systemName: "camera.metering.partial")?.withTintColor(.white, renderingMode: .alwaysOriginal))
-      focusView.contentMode = .scaleAspectFit
-      focusView.frame = CGRect(x: 0, y: 0, width: 50, height: 50)
-      focusView.alpha = 0.0 // Initially hidden
-      self.view.addSubview(focusView)
-      return focusView
-  }()
+  var focusOverlayView: UIView!
+  var focusView: UIImageView!
   var isUpdating = false
 
   /// Set this to lock the focus on a tapped point, instead of resetting to continuous auto-focus.
@@ -446,14 +440,23 @@ open class LuminaViewController: UIViewController {
 
   open override func viewDidLoad() {
       super.viewDidLoad()
-      // Create and add the focus view invisibly from the start to prevent flicker on first tap.
+
+      // Setup the overlay view for focus animations.
+      focusOverlayView = UIView(frame: self.view.bounds)
+      focusOverlayView.backgroundColor = .clear
+      focusOverlayView.isUserInteractionEnabled = false
+      focusOverlayView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+      self.view.addSubview(focusOverlayView)
+
+      // Create the focus view, respecting the custom focusImage if provided.
       let image = self.focusImage ?? UIImage(systemName: "camera.metering.partial")?.withTintColor(.white, renderingMode: .alwaysOriginal)
-      let focusView = UIImageView(image: image)
+      focusView = UIImageView(image: image)
       focusView.contentMode = .scaleAspectFit
       focusView.frame = CGRect(x: 0, y: 0, width: 50, height: 50)
       focusView.alpha = 0.0
-      self.view.addSubview(focusView)
-      self.focusView = focusView
+      
+      // Add the focus view to the dedicated overlay view.
+      focusOverlayView.addSubview(self.focusView)
   }
 
   /// override with caution

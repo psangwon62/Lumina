@@ -30,17 +30,21 @@ extension LuminaViewController {
   }
 
   private func showFocusView(at point: CGPoint) {
-    // Bring the existing lazy-loaded focus view to the front and set its new position.
-    self.view.bringSubviewToFront(self.focusView)
+    // Bring the dedicated overlay view to the front to ensure it's on top of other UI elements.
+    self.view.bringSubviewToFront(self.focusOverlayView)
     self.focusView.center = point
 
-    // Cancel any ongoing fade-out animations.
+    // Cancel any ongoing animations.
     self.focusView.layer.removeAllAnimations()
 
-    // Animate the appearance.
-    UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseIn, animations: {
+    // Set the animation's starting state: transparent and scaled up.
+    self.focusView.alpha = 0.0
+    self.focusView.transform = CGAffineTransform(scaleX: 1.5, y: 1.5)
+
+    // Animate to the final state: opaque and normal size.
+    UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut, animations: {
         self.focusView.alpha = 1.0
-        self.focusView.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
+        self.focusView.transform = .identity
     }, completion: { _ in
         // If focus lock is disabled, plan to fade it out.
         if !self.isFocusLockingEnabled {
