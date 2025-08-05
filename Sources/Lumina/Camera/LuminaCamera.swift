@@ -249,7 +249,6 @@ final class LuminaCamera: NSObject {
     self.delegate?.camera(self, didUpdateSessionStatus: .starting)
     self.sessionQueue.async {
       self.session.startRunning()
-      print("camera session started")
       self.delegate?.camera(self, didUpdateSessionStatus: .running)
     }
   }
