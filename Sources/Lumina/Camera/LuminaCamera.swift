@@ -25,6 +25,7 @@ protocol LuminaCameraDelegate: AnyObject {
   func cameraSetupCompleted(camera: LuminaCamera, result: CameraSetupResult)
   func cameraBeganTakingLivePhoto(camera: LuminaCamera)
   func cameraFinishedTakingLivePhoto(camera: LuminaCamera)
+  func camera(_ camera: LuminaCamera, didUpdateSessionStatus status: LuminaSessionStatus)
 }
 
 enum CameraSetupResult: String {
@@ -245,8 +246,11 @@ final class LuminaCamera: NSObject {
 
   func start() {
     LuminaLogger.notice(message: "starting capture session")
+    self.delegate?.camera(self, didUpdateSessionStatus: .starting)
     self.sessionQueue.async {
       self.session.startRunning()
+      print("camera session started")
+      self.delegate?.camera(self, didUpdateSessionStatus: .running)
     }
   }
 
@@ -254,6 +258,7 @@ final class LuminaCamera: NSObject {
     LuminaLogger.notice(message: "stopping capture session")
     self.sessionQueue.async {
       self.session.stopRunning()
+      self.delegate?.camera(self, didUpdateSessionStatus: .stopped)
     }
   }
 }

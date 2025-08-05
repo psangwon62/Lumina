@@ -76,6 +76,7 @@ public protocol LuminaDelegate: AnyObject {
   ///
   // swiftlint:disable identifier_name
   func tapped(at: CGPoint, from controller: LuminaViewController)
+  func didUpdate(sessionStatus: LuminaSessionStatus, from controller: LuminaViewController)
 }
 
 // MARK: Extension to make delegate functions optional
@@ -89,4 +90,5 @@ public extension LuminaDelegate {
   func detected(metadata: [Any], from controller: LuminaViewController) {}
   func dismissed(controller: LuminaViewController) {}
   func tapped(at: CGPoint, from controller: LuminaViewController) {}
+  func didUpdate(sessionStatus: LuminaSessionStatus, from controller: LuminaViewController) {}
 }

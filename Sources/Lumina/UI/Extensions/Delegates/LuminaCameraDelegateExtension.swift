@@ -10,9 +10,14 @@ import UIKit
 import CoreML
 
 extension LuminaViewController: LuminaCameraDelegate {
+  func camera(_ camera: LuminaCamera, didUpdateSessionStatus status: LuminaSessionStatus) {
+    delegate?.didUpdate(sessionStatus: status, from: self)
+  }
+
   func videoFrameCaptured(camera: LuminaCamera, frame: UIImage, predictedObjects: [LuminaRecognitionResult]?) {
     delegate?.streamed(videoFrame: frame, with: predictedObjects, from: self)
   }
+
 
   func videoRecordingCaptured(camera: LuminaCamera, videoURL: URL) {
     delegate?.captured(videoAt: videoURL, from: self)

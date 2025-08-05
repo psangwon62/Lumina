@@ -21,3 +21,9 @@ final public class LuminaModel {
     self.type = type
   }
 }
+
+public enum LuminaSessionStatus: String {
+    case running
+    case stopped
+    case starting
+}

@@ -29,6 +29,9 @@ struct LuminaCameraView: UIViewControllerRepresentable {
     
     // Capture handling
     @Binding var captureTrigger: Bool
+    
+    // Session status
+    @Binding var sessionStatus: LuminaSessionStatus
 
     func makeUIViewController(context: Context) -> LuminaViewController {
         let luminaVC = LuminaViewController()
@@ -115,6 +118,10 @@ struct LuminaCameraView: UIViewControllerRepresentable {
         init(_ parent: LuminaCameraView, photoStore: PhotoStore) {
             self.parent = parent
             self.photoStore = photoStore
+        }
+
+        func didUpdate(sessionStatus: LuminaSessionStatus, from controller: LuminaViewController) {
+            parent.sessionStatus = sessionStatus
         }
 
         func dismissed(controller: LuminaViewController) {

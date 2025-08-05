@@ -30,6 +30,7 @@ struct ContentView: View {
     @State private var resetZoomTrigger = false
     @State private var captureTrigger = false
     @State private var flashState: FlashState = .off
+    @State private var sessionStatus: LuminaSessionStatus = .stopped
 
     var body: some View {
         NavigationView {
@@ -90,7 +91,8 @@ struct ContentView: View {
                     useCoreMLModels: self.$useCoreMLModels,
                     isVideoStabilizationEnabled: self.$isVideoStabilizationEnabled,
                     isFocusLockingEnabled: self.$isFocusLockingEnabled,
-                    maxZoomScale: self.$maxZoomScale
+                    maxZoomScale: self.$maxZoomScale,
+                    sessionStatus: self.$sessionStatus
                 )
                 .environmentObject(self.photoStore)
             }
@@ -122,6 +124,7 @@ struct CameraView: View {
     @Binding var isVideoStabilizationEnabled: Bool
     @Binding var isFocusLockingEnabled: Bool
     @Binding var maxZoomScale: Float
+    @Binding var sessionStatus: LuminaSessionStatus
 
     var body: some View {
         NavigationView {
@@ -147,7 +150,8 @@ struct CameraView: View {
                     },
                     commandedZoomFactor: self.$commandedZoomFactor,
                     resetZoomTrigger: self.$resetZoomTrigger,
-                    captureTrigger: self.$captureTrigger
+                    captureTrigger: self.$captureTrigger,
+                    sessionStatus: self.$sessionStatus
                 )
                 .ignoresSafeArea()
                 
@@ -160,6 +164,15 @@ struct CameraView: View {
                                 .foregroundColor(.white)
                         }
                         
+                        Spacer()
+                        
+                        Text(sessionStatus.rawValue.capitalized)
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(sessionStatus == .running ? .green : .red)
+                            .padding(8)
+                            .background(Color.black.opacity(0.5))
+                            .cornerRadius(10)
+
                         Spacer()
                         
                         Button(action: {
