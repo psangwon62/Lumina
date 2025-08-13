@@ -150,6 +150,29 @@ extension LuminaCamera {
     configureFrameRate()
     
     self.session.commitConfiguration()
+      
+//
+//    let newOrientation = LuminaViewController.orientation
+//    let videoOrientation: AVCaptureVideoOrientation
+//    switch newOrientation {
+//    case .portrait:
+//        videoOrientation = .portrait
+//    case .portraitUpsideDown:
+//        videoOrientation = .portraitUpsideDown
+//    case .landscapeLeft:
+//        videoOrientation = .landscapeLeft
+//    case .landscapeRight:
+//        videoOrientation = .landscapeRight
+//    default:
+//        videoOrientation = .portrait
+//    }
+    
+    for output in self.session.outputs {
+        guard let connection = output.connection(with: .video), connection.isVideoOrientationSupported else {
+            continue
+        }
+        connection.videoOrientation = .portrait
+    }
     
     DispatchQueue.main.async {
         NotificationCenter.default.post(name: .luminaCameraDeviceChanged, object: self.videoInput?.device)
