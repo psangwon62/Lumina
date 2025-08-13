@@ -525,4 +525,11 @@ open class LuminaViewController: UIViewController {
     }
     return versionString
   }
+
+  /// Converts a CGRect from the model's normalized coordinate space (0.0-1.0) to the view's coordinate space.
+  /// - Parameter normalizedRect: The rectangle in the normalized coordinate space.
+  /// - Returns: A CGRect in the view's coordinate space.
+  public func convertToViewCoordinates(fromNormalizedRect normalizedRect: CGRect) -> CGRect {
+      return previewLayer.layerRectConverted(fromMetadataOutputRect: normalizedRect)
+  }
 }

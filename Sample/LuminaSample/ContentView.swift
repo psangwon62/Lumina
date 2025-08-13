@@ -18,8 +18,8 @@ struct ContentView: View {
     @State private var textPrompt = ""
     @State private var resolution: CameraResolution = .high1920x1080
     @State private var frameRate: Int = 30
-    @State private var useCoreMLModels = false
-    @State private var isVideoStabilizationEnabled = false
+    @State private var useCoreMLModels = true
+    @State private var isVideoStabilizationEnabled = true
     @State private var isFocusLockingEnabled = true
     @State private var loggingLevel: Logger.Level = .critical
     @State private var maxZoomScale: Float = 15.0
@@ -164,15 +164,6 @@ struct CameraView: View {
                                 .foregroundColor(.white)
                         }
                         
-                        Spacer()
-                        
-                        Text(sessionStatus.rawValue.capitalized)
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(sessionStatus == .running ? .green : .red)
-                            .padding(8)
-                            .background(Color.black.opacity(0.5))
-                            .cornerRadius(10)
-
                         Spacer()
                         
                         Button(action: {

@@ -65,9 +65,12 @@ struct LuminaCameraView: UIViewControllerRepresentable {
         
         if useCoreMLModels {
             do {
-                let mobileNet = LuminaModel(model: try MobileNet().model, type: "MobileNet")
-                let squeezeNet = LuminaModel(model: try SqueezeNet().model, type: "SqueezeNet")
-                luminaVC.streamingModels = [mobileNet, squeezeNet]
+                if #available(iOS 17.0, *) {
+                    let detrModel = LuminaModel(model: try DETRResnet50().model, type: "DETRResnet50")
+                    luminaVC.streamingModels = [detrModel]
+                } else {
+                    // Fallback on earlier versions
+                }
             } catch {
                 print("Error loading CoreML models: \(error)")
             }
@@ -137,20 +140,41 @@ struct LuminaCameraView: UIViewControllerRepresentable {
         }
         
         func streamed(videoFrame: UIImage, with predictions: [LuminaRecognitionResult]?, from controller: LuminaViewController) {
-            guard let predicted = predictions else {
-              return
+            guard let results = predictions, let firstResult = results.first else {
+                return
             }
-            var resultString = String()
-            for prediction in predicted {
-              guard let values = prediction.predictions else {
-                continue
-              }
-              guard let bestPrediction = values.first else {
-                continue
-              }
-              resultString.append("\(String(describing: prediction.type)): \(bestPrediction.name)" + "\r\n")
+            
+            if let box = firstResult.personBoundingBox {
+                // The model's output space (e.g., 448x448)
+                let modelSize = CGSize(width: 448, height: 448)
+                
+                // Normalize the coordinates from model space (448x448) to normalized space (0.0-1.0)
+                let normalizedRect = CGRect(
+                    x: box.origin.x / modelSize.width,
+                    y: box.origin.y / modelSize.height,
+                    width: box.width / modelSize.width,
+                    height: box.height / modelSize.height
+                )
+                
+                // Use the helper method to convert normalized coordinates to view coordinates
+                let viewSpaceBox = controller.convertToViewCoordinates(fromNormalizedRect: normalizedRect)
+                
+                // Print the coordinates as requested
+                let topLeft = viewSpaceBox.origin
+                let topRight = CGPoint(x: viewSpaceBox.maxX, y: viewSpaceBox.minY)
+                let bottomLeft = CGPoint(x: viewSpaceBox.minX, y: viewSpaceBox.maxY)
+                let bottomRight = CGPoint(x: viewSpaceBox.maxX, y: viewSpaceBox.maxY)
+                
+                print("""
+                --- Person Detected ---
+                Bounding Box (in View space): \(viewSpaceBox)
+                Top-Left: \(topLeft)
+                Top-Right: \(topRight)
+                Bottom-Left: \(bottomLeft)
+                Bottom-Right: \(bottomRight)
+                ---------------------
+                """)
             }
-            controller.textPrompt = resultString
         }
     }
 }
