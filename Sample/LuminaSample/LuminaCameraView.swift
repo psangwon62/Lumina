@@ -1,11 +1,11 @@
-import SwiftUI
-import Lumina
 import CoreML
+import Lumina
+import SwiftUI
 
 struct LuminaCameraView: UIViewControllerRepresentable {
     @EnvironmentObject var photoStore: PhotoStore
     @Binding var isPresented: Bool
-    
+
     // Camera settings from ContentView
     @Binding var position: CameraPosition
     @Binding var flashState: FlashState
@@ -21,22 +21,22 @@ struct LuminaCameraView: UIViewControllerRepresentable {
     @Binding var isVideoStabilizationEnabled: Bool
     @Binding var isFocusLockingEnabled: Bool
     @Binding var maxZoomScale: Float
-    
+
     // Zoom handling
     var onZoomFactorChanged: (Float) -> Void
     @Binding var commandedZoomFactor: Float?
     @Binding var resetZoomTrigger: Bool
-    
+
     // Capture handling
     @Binding var captureTrigger: Bool
-    
+
     // Session status
     @Binding var sessionStatus: LuminaSessionStatus
 
     func makeUIViewController(context: Context) -> LuminaViewController {
         let luminaVC = LuminaViewController()
         luminaVC.delegate = context.coordinator
-        
+
         // Apply settings from SwiftUI
         luminaVC.position = position
         luminaVC.flashState = flashState
@@ -52,21 +52,21 @@ struct LuminaCameraView: UIViewControllerRepresentable {
         luminaVC.isVideoStabilizationEnabled = isVideoStabilizationEnabled
         luminaVC.isFocusLockingEnabled = isFocusLockingEnabled
         luminaVC.focusImage = UIImage(resource: .focus)
-        
+
         // Hide all built-in UIKit buttons
         luminaVC.setCancelButton(visible: false)
         luminaVC.setShutterButton(visible: false)
         luminaVC.setSwitchButton(visible: false)
         luminaVC.setFlashButton(visible: false)
-        
+
         luminaVC.onZoomDidChange = { newZoomFactor in
             onZoomFactorChanged(newZoomFactor)
         }
-        
+
         if useCoreMLModels {
             do {
                 if #available(iOS 17.0, *) {
-                    let detrModel = LuminaModel(model: try DETRResnet50().model, type: "DETRResnet50")
+                    let detrModel = try LuminaModel(model: DETRResnet50().model, type: "DETRResnet50")
                     luminaVC.streamingModels = [detrModel]
                 } else {
                     // Fallback on earlier versions
@@ -75,11 +75,11 @@ struct LuminaCameraView: UIViewControllerRepresentable {
                 print("Error loading CoreML models: \(error)")
             }
         }
-        
+
         return luminaVC
     }
 
-    func updateUIViewController(_ uiViewController: LuminaViewController, context: Context) {
+    func updateUIViewController(_ uiViewController: LuminaViewController, context _: Context) {
         // Sync state changes from SwiftUI to the ViewController
         if uiViewController.position != position {
             uiViewController.position = position
@@ -94,14 +94,14 @@ struct LuminaCameraView: UIViewControllerRepresentable {
                 self.commandedZoomFactor = nil // Reset the command
             }
         }
-        
+
         if resetZoomTrigger {
             uiViewController.resetZoom()
             DispatchQueue.main.async {
                 self.resetZoomTrigger = false // Reset the command
             }
         }
-        
+
         if captureTrigger {
             uiViewController.captureStillImage()
             DispatchQueue.main.async {
@@ -123,57 +123,70 @@ struct LuminaCameraView: UIViewControllerRepresentable {
             self.photoStore = photoStore
         }
 
-        func didUpdate(sessionStatus: LuminaSessionStatus, from controller: LuminaViewController) {
+        func didUpdate(sessionStatus: LuminaSessionStatus, from _: LuminaViewController) {
             parent.sessionStatus = sessionStatus
         }
 
-        func dismissed(controller: LuminaViewController) {
+        func dismissed(controller _: LuminaViewController) {
             // This is now handled by the SwiftUI overlay's dismiss button
         }
 
-        func captured(stillImage: UIImage, livePhotoAt: URL?, depthData: Any?, from controller: LuminaViewController) {
+        func captured(stillImage: UIImage, livePhotoAt _: URL?, depthData _: Any?, from _: LuminaViewController) {
             photoStore.addPhoto(stillImage)
         }
 
-        func captured(videoAt: URL, from controller: LuminaViewController) {
+        func captured(videoAt _: URL, from _: LuminaViewController) {
             // Handle video if needed
         }
-        
-        func streamed(videoFrame: UIImage, with predictions: [LuminaRecognitionResult]?, from controller: LuminaViewController) {
+
+        func streamed(videoFrame _: UIImage, with predictions: [LuminaRecognitionResult]?, from controller: LuminaViewController) {
             guard let results = predictions, let firstResult = results.first else {
                 return
             }
-            
-            if let box = firstResult.personBoundingBox {
-                // The model's output space (e.g., 448x448)
-                let modelSize = CGSize(width: 448, height: 448)
-                
-                // Normalize the coordinates from model space (448x448) to normalized space (0.0-1.0)
-                let normalizedRect = CGRect(
-                    x: box.origin.x / modelSize.width,
-                    y: box.origin.y / modelSize.height,
-                    width: box.width / modelSize.width,
-                    height: box.height / modelSize.height
+
+            if let landscapeBox = firstResult.personBoundingBox {
+                let modelWidth = 448.0
+                let modelHeight = 448.0
+
+                let portraitBox = CGRect(
+                    x: modelHeight - landscapeBox.origin.y - landscapeBox.height,
+                    y: landscapeBox.origin.x,
+                    width: landscapeBox.height,
+                    height: landscapeBox.width
                 )
-                
-                // Use the helper method to convert normalized coordinates to view coordinates
+
+                var normalizedRect = CGRect(
+                    x: portraitBox.origin.x / modelHeight,
+                    y: portraitBox.origin.y / modelWidth,
+                    width: portraitBox.width / modelHeight,
+                    height: portraitBox.height / modelWidth
+                )
+
+                normalizedRect.origin.x = 1.0 - normalizedRect.origin.x - normalizedRect.width
+                normalizedRect.origin.y = 1.0 - normalizedRect.origin.y - normalizedRect.height
+
                 let viewSpaceBox = controller.convertToViewCoordinates(fromNormalizedRect: normalizedRect)
-                
-                // Print the coordinates as requested
-                let topLeft = viewSpaceBox.origin
-                let topRight = CGPoint(x: viewSpaceBox.maxX, y: viewSpaceBox.minY)
-                let bottomLeft = CGPoint(x: viewSpaceBox.minX, y: viewSpaceBox.maxY)
-                let bottomRight = CGPoint(x: viewSpaceBox.maxX, y: viewSpaceBox.maxY)
-                
-                print("""
-                --- Person Detected ---
-                Bounding Box (in View space): \(viewSpaceBox)
-                Top-Left: \(topLeft)
-                Top-Right: \(topRight)
-                Bottom-Left: \(bottomLeft)
-                Bottom-Right: \(bottomRight)
-                ---------------------
-                """)
+
+                let screenBounds = controller.view.bounds
+                let visibleBox = viewSpaceBox.intersection(screenBounds)
+
+                if !visibleBox.isNull && !visibleBox.isEmpty {
+                    let topLeft = visibleBox.origin
+                    let topRight = CGPoint(x: visibleBox.maxX, y: visibleBox.minY)
+                    let bottomLeft = CGPoint(x: visibleBox.minX, y: visibleBox.maxY)
+                    let bottomRight = CGPoint(x: visibleBox.maxX, y: visibleBox.maxY)
+
+                    print("""
+                        --- Person Detected (Visible Part) ---
+                        Camera Position: \(controller.position.rawValue)
+                        Visible Bounding Box: \(visibleBox)
+                        Top-Left: \(topLeft)
+                        Top-Right: \(topRight)
+                        Bottom-Left: \(bottomLeft)
+                        Bottom-Right: \(bottomRight)
+                        --------------------------------------
+                        """)
+                }
             }
         }
     }

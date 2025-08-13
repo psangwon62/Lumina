@@ -477,7 +477,7 @@ open class LuminaViewController: UIViewController {
   }
 
   static var orientation: UIInterfaceOrientation {
-    UIApplication.shared.windows.first(where: { $0.isKeyWindow })?.windowScene?.interfaceOrientation  ?? .portrait
+      .portrait
   }
 
   /// override with caution
@@ -487,10 +487,7 @@ open class LuminaViewController: UIViewController {
   }
 
   open override var shouldAutorotate: Bool {
-    guard let camera = self.camera else {
-      return true
-    }
-    return !camera.recordingVideo
+    return false
   }
 
   /// override with caution
