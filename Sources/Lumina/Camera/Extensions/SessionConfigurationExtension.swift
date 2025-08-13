@@ -53,13 +53,15 @@ extension LuminaCamera {
 
   func restartVideo() {
     LuminaLogger.notice(message: "restarting video feed")
-    if self.session.isRunning {
-      self.stop()
-      updateVideo { result in
-        if result == .videoSuccess {
-          self.start()
-        } else {
-          self.delegate?.cameraSetupCompleted(camera: self, result: result)
+    sessionQueue.async {
+      if self.session.isRunning {
+        self.stop()
+        self.updateVideo { result in
+          if result == .videoSuccess {
+            self.start()
+          } else {
+            self.delegate?.cameraSetupCompleted(camera: self, result: result)
+          }
         }
       }
     }
