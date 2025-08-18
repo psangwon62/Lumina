@@ -367,9 +367,9 @@ open class LuminaViewController: UIViewController {
   var beginZoomScale: Float = 1.0
 
   /// run this in order to create Lumina
-  public init() {
+  public init(segmentationAnalyzer: SegmentationAnalyzerInterface? = nil) {
     super.init(nibName: nil, bundle: nil)
-    let camera = LuminaCamera()
+    let camera = LuminaCamera(segmentationAnalyzer: segmentationAnalyzer)
     camera.delegate = self
     self.camera = camera
     if let version = LuminaViewController.getVersion() {

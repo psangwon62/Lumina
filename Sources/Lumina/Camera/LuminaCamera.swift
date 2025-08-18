@@ -66,7 +66,8 @@ final class LuminaCamera: NSObject {
 
   var flashState: FlashState = .off
   var isVideoStabilizationEnabled = false
-
+  var segmentationAnalyzer: SegmentationAnalyzerInterface?
+    
   var torchState: TorchState = .off {
     didSet {
       guard let input = self.videoInput else {
@@ -244,6 +245,10 @@ final class LuminaCamera: NSObject {
     }
   }
 
+    init(segmentationAnalyzer: SegmentationAnalyzerInterface? = nil) {
+        self.segmentationAnalyzer = segmentationAnalyzer
+    }
+    
   func start() {
     LuminaLogger.notice(message: "starting capture session")
     self.delegate?.camera(self, didUpdateSessionStatus: .starting)
