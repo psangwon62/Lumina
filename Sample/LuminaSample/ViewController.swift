@@ -20,7 +20,6 @@ class ViewController: UITableViewController {
   @IBOutlet weak var capturesLivePhotosSwitch: UISwitch!
   @IBOutlet weak var capturesDepthDataSwitch: UISwitch!
   @IBOutlet weak var streamsDepthDataSwitch: UISwitch!
-  @IBOutlet weak var showTextPromptViewSwitch: UISwitch!
   @IBOutlet weak var frameRateLabel: UILabel!
   @IBOutlet weak var frameRateSlider: UISlider!
   @IBOutlet weak var useCoreMLModelSwitch: UISwitch!
@@ -54,7 +53,6 @@ extension ViewController { // MARK: IBActions
     camera.position = self.frontCameraSwitch.isOn ? .front : .back
     camera.recordsVideo = self.recordsVideoSwitch.isOn
     camera.streamFrames = self.trackImagesSwitch.isOn
-    camera.textPrompt = self.showTextPromptViewSwitch.isOn ? "This is how to test the text prompt view" : ""
     camera.trackMetadata = self.trackMetadataSwitch.isOn
     camera.captureLivePhotos = self.capturesLivePhotosSwitch.isOn
     camera.captureDepthData = self.capturesDepthDataSwitch.isOn
@@ -121,7 +119,6 @@ extension ViewController: LuminaDelegate {
       }
       resultString.append("\(String(describing: prediction.type)): \(bestPrediction.name)" + "\r\n")
     }
-    controller.textPrompt = resultString
   }
 
   func captured(stillImage: UIImage, livePhotoAt: URL?, depthData: Any?, from controller: LuminaViewController) {

@@ -55,7 +55,6 @@ extension LuminaViewController {
     self.view.addSubview(self.shutterButton)
     self.view.addSubview(self.switchButton)
     self.view.addSubview(self.flashButton)
-    self.view.addSubview(self.textPromptView)
     self.view.addGestureRecognizer(self.zoomRecognizer)
     self.view.addGestureRecognizer(self.focusRecognizer)
     enableUI(valid: false)
@@ -85,11 +84,6 @@ extension LuminaViewController {
     self.cancelButton.center = CGPoint(x: frame.minX + 55, y: frame.maxY - 45)
     self.flashButton.center = CGPoint(x: frame.minX + 25, y: frame.minY + 25)
     self.shutterButton.center = CGPoint(x: frame.midX, y: frame.maxY - 45)
-
-    let textWidth = frame.maxX - 110
-    self.textPromptView.frame.size = CGSize(width: textWidth - 10, height: 80)
-    self.textPromptView.layoutSubviews()
-    self.textPromptView.center = CGPoint(x: frame.midX, y: frame.minY + 45)
   }
 
   // swiftlint:disable cyclomatic_complexity
@@ -109,34 +103,11 @@ extension LuminaViewController {
           self.camera?.updateVideo({ result in
             self.handleCameraSetupResult(result)
           })
-        case .videoPermissionDenied:
-          self.textPrompt = "Camera permissions for Lumina have been previously denied - please access your privacy settings to change this."
-        case .videoPermissionRestricted:
-          self.textPrompt = "Camera permissions for Lumina have been restricted - please access your privacy settings to change this."
         case .videoRequiresAuthorization:
           self.camera?.requestVideoPermissions()
-        case .audioPermissionRestricted:
-          self.textPrompt = "Audio permissions for Lumina have been restricted - please access your privacy settings to change this."
-          DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            self.textPrompt = ""
-          }
         case .audioRequiresAuthorization:
           self.camera?.requestAudioPermissions()
-        case .audioPermissionDenied:
-          self.textPrompt = "Audio permissions for Lumina have been previously denied - please access your privacy settings to change this."
-          DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            self.textPrompt = ""
-          }
-        case .invalidVideoDataOutput,
-            .invalidVideoInput,
-            .invalidPhotoOutput,
-            .invalidVideoMetadataOutput,
-            .invalidVideoFileOutput,
-            .invalidAudioInput,
-            .invalidDepthDataOutput:
-          self.textPrompt = "\(result.rawValue) - please try again"
-        case .unknownError:
-          self.textPrompt = "Unknown error occurred while loading Lumina - please try again"
+      default: return
       }
     }
   }

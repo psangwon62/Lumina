@@ -15,7 +15,6 @@ struct ContentView: View {
     @State private var captureLivePhotos = false
     @State private var captureDepthData = false
     @State private var streamDepthData = false
-    @State private var textPrompt = ""
     @State private var resolution: CameraResolution = .high1920x1080
     @State private var frameRate: Int = 30
     @State private var useCoreMLModels = true

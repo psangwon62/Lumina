@@ -36,7 +36,6 @@ final class LuminaObjectRecognizer: NSObject {
         guard let cgImage = image.cgImage
         else { return nil }
 
-        let context = CIContext()
         let ciImage = CIImage(cgImage: cgImage)
 
         return ciImage.resized(to: targetSize)

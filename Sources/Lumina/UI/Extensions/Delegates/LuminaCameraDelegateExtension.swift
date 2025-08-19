@@ -47,15 +47,9 @@ extension LuminaViewController: LuminaCameraDelegate {
   }
 
   func cameraBeganTakingLivePhoto(camera: LuminaCamera) {
-    DispatchQueue.main.async {
-      self.textPrompt = "Capturing live photo..."
-    }
   }
 
   func cameraFinishedTakingLivePhoto(camera: LuminaCamera) {
-    DispatchQueue.main.async {
-      self.textPrompt = ""
-    }
   }
 
   func depthDataCaptured(camera: LuminaCamera, depthData: Any) {

@@ -136,7 +136,6 @@ There are a number of properties you can set before presenting `Lumina`. You can
 camera.position = .front // could also be .back
 camera.recordsVideo = true // if this is set, streamFrames and streamingModel are invalid
 camera.streamFrames = true // could also be false
-camera.textPrompt = "This is how to test the text prompt view" // assigning an empty string will make the view fade away
 camera.trackMetadata = true // could also be false
 camera.resolution = .highest // follows an enum
 camera.captureLivePhotos = true // for this to work, .resolution must be set to .photo
@@ -248,7 +247,6 @@ func streamed(videoFrame: UIImage, with predictions: [LuminaRecognitionResult]?,
     }
     resultString.append("\(String(describing: prediction.type)): \(bestPrediction.name)" + "\r\n")
   }
-  controller.textPrompt = resultString
 }
 ```
 
