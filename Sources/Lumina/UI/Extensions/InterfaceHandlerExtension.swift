@@ -107,8 +107,17 @@ extension LuminaViewController {
           self.camera?.requestVideoPermissions()
         case .audioRequiresAuthorization:
           self.camera?.requestAudioPermissions()
-      default: return
-      }
+          case .videoPermissionDenied, .audioPermissionDenied:
+              let title = "‘Frame’에 대해 사진 접근 권한이 없습니다. 설정에서 사진 접근 권한을 켜시겠습니까?"
+              let alert = UIAlertController(title: title, message: "", preferredStyle: .alert)
+              alert.addAction(UIAlertAction(title: "설정으로 가기", style: .default) { _ in
+                  guard let settingsURL = URL(string: UIApplication.openSettingsURLString) else { return }
+                  UIApplication.shared.open(settingsURL)
+              })
+              alert.addAction(UIAlertAction(title: "취소", style: .cancel, handler: nil))
+              self.present(alert, animated: true)
+          default: return
+          }
     }
   }
 

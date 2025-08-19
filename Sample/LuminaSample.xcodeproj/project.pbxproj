@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -13,7 +13,7 @@
 		1B2F5B7D2E2FECAB004AD759 /* PreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B2F5B782E2FECAB004AD759 /* PreviewView.swift */; };
 		1B2F5B7F2E2FF115004AD759 /* PhotoStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B2F5B7E2E2FF115004AD759 /* PhotoStore.swift */; };
 		1B4CEDDC2E4CA7D000BD9D48 /* DETRResnet50.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = 1B4CEDDB2E4CA7D000BD9D48 /* DETRResnet50.mlpackage */; };
-		5025C7B826A33BFA009B1F85 /* Lumina in Frameworks */ = {isa = PBXBuildFile; productRef = 5025C7B726A33BFA009B1F85 /* Lumina */; };
+		1BE341812E54AA4800D4C271 /* Lumina in Frameworks */ = {isa = PBXBuildFile; productRef = 1BE341802E54AA4800D4C271 /* Lumina */; };
 		534C1E9E1F7C3C59001127BC /* ResolutionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 534C1E9D1F7C3C59001127BC /* ResolutionViewController.swift */; };
 		5365BFD41F79829800B8F338 /* ImageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5365BFD31F79829800B8F338 /* ImageViewController.swift */; };
 		5365BFDA1F79AAA800B8F338 /* MobileNet.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 5365BFD91F79AA9B00B8F338 /* MobileNet.mlmodel */; };
@@ -66,7 +66,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5025C7B826A33BFA009B1F85 /* Lumina in Frameworks */,
+				1BE341812E54AA4800D4C271 /* Lumina in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -149,7 +149,7 @@
 			);
 			name = LuminaSample;
 			packageProductDependencies = (
-				5025C7B726A33BFA009B1F85 /* Lumina */,
+				1BE341802E54AA4800D4C271 /* Lumina */,
 			);
 			productName = LuminaSample;
 			productReference = 53B828F31EAAA09000E3A624 /* LuminaSample.app */;
@@ -181,6 +181,9 @@
 				Base,
 			);
 			mainGroup = 53B828EA1EAAA09000E3A624;
+			packageReferences = (
+				1BE3417F2E54AA4800D4C271 /* XCLocalSwiftPackageReference "../../Lumina-fix" */,
+			);
 			productRefGroup = 53B828F41EAAA09000E3A624 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -440,8 +443,15 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		1BE3417F2E54AA4800D4C271 /* XCLocalSwiftPackageReference "../../Lumina-fix" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "../../Lumina-fix";
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
-		5025C7B726A33BFA009B1F85 /* Lumina */ = {
+		1BE341802E54AA4800D4C271 /* Lumina */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Lumina;
 		};

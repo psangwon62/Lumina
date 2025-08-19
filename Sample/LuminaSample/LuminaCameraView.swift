@@ -149,8 +149,8 @@ struct LuminaCameraView: UIViewControllerRepresentable {
                 let modelHeight = 448.0
 
                 let portraitBox = CGRect(
-                    x: modelHeight - landscapeBox.origin.y - landscapeBox.height,
-                    y: landscapeBox.origin.x,
+                    x: modelHeight - landscapeBox.centerX - landscapeBox.height,
+                    y: landscapeBox.centerY,
                     width: landscapeBox.height,
                     height: landscapeBox.width
                 )
