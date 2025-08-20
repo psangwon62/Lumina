@@ -14,12 +14,8 @@ extension LuminaCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
         guard let image = sampleBuffer.normalizedVideoFrame(forCamera: position) else {
             return
         }
-        if let modelPairs = streamingModels {
-            LuminaLogger.notice(message: "valid CoreML models present - attempting to scan photo")
-            if self.recognizer == nil {
-                let newRecognizer = LuminaObjectRecognizer(modelPairs: modelPairs, segmentationAnalyzer: segmentationAnalyzer)
-                self.recognizer = newRecognizer
-            }
+        
+        if streamingModels != nil {
             guard let recognizer = recognizer as? LuminaObjectRecognizer else {
                 LuminaLogger.error(message: "models loaded, but could not use object recognizer")
                 DispatchQueue.main.async {
@@ -27,6 +23,7 @@ extension LuminaCamera: AVCaptureVideoDataOutputSampleBufferDelegate {
                 }
                 return
             }
+            
             recognizer.recognize(from: image, completion: { results in
                 DispatchQueue.main.async {
                     self.delegate?.videoFrameCaptured(camera: self, frame: image, predictedObjects: results)

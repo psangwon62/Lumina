@@ -360,6 +360,20 @@ open class LuminaViewController: UIViewController {
         NotificationCenter.default.removeObserver(self)
     }
 
+    public func getPersonBox(_ image: UIImage) async -> PersonBox? {
+        guard let recognizer = camera?.recognizer as? LuminaObjectRecognizer else {
+            LuminaLogger.error(message: "Recognizer를 사용할 수 없습니다.")
+            return nil
+        }
+
+        return await withCheckedContinuation { continuation in
+            recognizer.recognize(from: image) { result in
+                let personBox = result?.first?.personBoundingBox
+                continuation.resume(returning: personBox)
+            }
+        }
+    }
+
     @objc func cameraDeviceDidChange(_ notification: Notification) {
         // Hide the focus view when the camera changes
         focusView.alpha = 0.0

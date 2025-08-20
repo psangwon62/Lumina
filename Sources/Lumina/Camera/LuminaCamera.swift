@@ -174,7 +174,17 @@ final class LuminaCamera: NSObject {
 
   var recognizer: AnyObject?
 
-  var streamingModels: [LuminaModel]?
+    var streamingModels: [LuminaModel]? {
+        didSet {
+            if let models = streamingModels, !models.isEmpty {
+                LuminaLogger.notice(message: "Streaming models set. Initializing recognizer.")
+                let newRecognizer = LuminaObjectRecognizer(modelPairs: models, segmentationAnalyzer: segmentationAnalyzer)
+                self.recognizer = newRecognizer
+            } else {
+                self.recognizer = nil
+            }
+        }
+    }
 
   var session = AVCaptureSession()
 
