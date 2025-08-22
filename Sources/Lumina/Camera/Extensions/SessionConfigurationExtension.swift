@@ -130,7 +130,7 @@ extension LuminaCamera {
       self.session.addOutput(self.videoDataOutput)
       if let connection = self.videoDataOutput.connection(with: .video) {
           if connection.isVideoStabilizationSupported {
-              connection.preferredVideoStabilizationMode = self.isVideoStabilizationEnabled ? .auto : .off
+              connection.preferredVideoStabilizationMode = self.isVideoStabilizationEnabled ? .standard : .off
           }
       }
     }

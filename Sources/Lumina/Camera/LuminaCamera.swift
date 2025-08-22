@@ -176,16 +176,17 @@ final class LuminaCamera: NSObject {
 
     var streamingModels: [LuminaModel]? {
         didSet {
+            // streamingModels가 nil이 아니고, 비어있지 않다면 recognizer를 즉시 생성합니다.
             if let models = streamingModels, !models.isEmpty {
                 LuminaLogger.notice(message: "Streaming models set. Initializing recognizer.")
                 let newRecognizer = LuminaObjectRecognizer(modelPairs: models, segmentationAnalyzer: segmentationAnalyzer)
                 self.recognizer = newRecognizer
             } else {
+                // 모델이 없으면 recognizer를 nil로 설정합니다.
                 self.recognizer = nil
             }
         }
     }
-
   var session = AVCaptureSession()
 
   fileprivate var discoverySession: AVCaptureDevice.DiscoverySession? {

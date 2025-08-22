@@ -66,8 +66,10 @@ struct LuminaCameraView: UIViewControllerRepresentable {
         if useCoreMLModels {
             do {
                 if #available(iOS 17.0, *) {
-                    let detrModel = try LuminaModel(model: DETRResnet50().model, type: "DETRResnet50")
-                    luminaVC.streamingModels = [detrModel]
+                    Task {
+                        let detrModel = try LuminaModel(model: DETRResnet50().model, type: "DETRResnet50")
+                        luminaVC.streamingModels = [detrModel]
+                    }
                 } else {
                     // Fallback on earlier versions
                 }

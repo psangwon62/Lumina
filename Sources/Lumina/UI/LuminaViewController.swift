@@ -360,16 +360,18 @@ open class LuminaViewController: UIViewController {
         NotificationCenter.default.removeObserver(self)
     }
 
-    public func getPersonBox(_ image: UIImage) async -> PersonBox? {
+    public func getPersonBox(_ image: UIImage) async -> (box: PersonBox?, contour: CGImage?)? {
         guard let recognizer = camera?.recognizer as? LuminaObjectRecognizer else {
             LuminaLogger.error(message: "Recognizer를 사용할 수 없습니다.")
-            return nil
+            return (nil, nil)
         }
 
         return await withCheckedContinuation { continuation in
-            recognizer.recognize(from: image) { result in
+            recognizer.recognize(from: image, isGuidePhoto: true) { result in
                 let personBox = result?.first?.personBoundingBox
-                continuation.resume(returning: personBox)
+                let contour = result?.first?.maskImage
+                
+                continuation.resume(returning: (personBox, contour))
             }
         }
     }
