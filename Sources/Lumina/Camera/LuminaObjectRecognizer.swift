@@ -60,7 +60,7 @@ final class LuminaObjectRecognizer: NSObject {
         } else {
             croppedImage = image.croppedToAspectRatio(originalImageSize.width, originalImageSize.height) ?? image
         }
-        
+
         guard let resizedImage = resizeImage(croppedImage, targetSize: .init(width: 448, height: 448))
         else { return }
 
@@ -128,10 +128,10 @@ final class LuminaObjectRecognizer: NSObject {
                     mappingGroup.enter()
                     Task {
                         if #available(iOS 15.0, *) {
-                            if isGuidePhoto {
-                                guard let mask = try renderMask(resultArray: MLShapedArray(multiArray), downscaleFactor: 2, originalSize: originalImageSize) else { return }
-                                maskedImage = mask
-                            }
+//                            if isGuidePhoto {
+                            guard let mask = try renderMask(resultArray: MLShapedArray(multiArray), downscaleFactor: 2, originalSize: originalImageSize, isGuidePhoto: isGuidePhoto) else { return }
+                            maskedImage = mask
+//                            }
                         }
                         personBoundingBox = await self.segmentationAnalyzer?.findLargestPersonBox(from: multiArray)
                         mappingGroup.leave()
@@ -150,7 +150,8 @@ final class LuminaObjectRecognizer: NSObject {
     func renderMask(
         resultArray: MLShapedArray<Int32>?,
         downscaleFactor: Int,
-        originalSize: CGSize
+        originalSize: CGSize,
+        isGuidePhoto: Bool
     ) throws -> CGImage? {
         guard let resultArray else { return nil }
 
@@ -174,7 +175,9 @@ final class LuminaObjectRecognizer: NSObject {
 
         // --- 3. Extract: '축소된' 마스크에서 테두리 추출 ---
         let edge = scaledCIMask.applyingFilter("CIMorphologyGradient", parameters: ["inputRadius": 2.0])
-        let smallColoredEdge = CIImage(color: CIColor(red: 1, green: 1, blue: 1, alpha: 1))
+        let contourColor = isGuidePhoto ? CIColor(red: 1, green: 1, blue: 1, alpha: 1) :
+        CIColor(red: 1, green: 0, blue: 1, alpha: 1)
+        let smallColoredEdge = CIImage(color: contourColor)
             .cropped(to: edge.extent)
             .applyingFilter("CIBlendWithMask", parameters: ["inputMaskImage": edge])
 
@@ -206,11 +209,12 @@ extension UIImage {
     /// - Returns: 크롭된 UIImage (크롭 불가 시 nil)
     func croppedToAspectRatio(_ aspectRatioWidth: CGFloat,
                               _ aspectRatioHeight: CGFloat,
-                              scaleToFillWidthFirst: Bool = true) -> UIImage? {
+                              scaleToFillWidthFirst: Bool = true) -> UIImage?
+    {
         guard aspectRatioWidth > 0, aspectRatioHeight > 0,
-              let cgImage = self.cgImage else { return nil }
+              let cgImage = cgImage else { return nil }
 
-        let imageWidth  = CGFloat(cgImage.width)
+        let imageWidth = CGFloat(cgImage.width)
         let imageHeight = CGFloat(cgImage.height)
         let targetRatio = aspectRatioWidth / aspectRatioHeight
         let currentRatio = imageWidth / imageHeight
@@ -238,6 +242,6 @@ extension UIImage {
         guard let croppedCG = cgImage.cropping(to: integralRect) else { return nil }
 
         // 원본 이미지의 orientation과 scale을 유지
-        return UIImage(cgImage: croppedCG, scale: self.scale, orientation: self.imageOrientation)
+        return UIImage(cgImage: croppedCG, scale: scale, orientation: imageOrientation)
     }
 }
